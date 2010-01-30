@@ -17,7 +17,7 @@ def subscribe_url(instance):
 	return reverse("unsubscribe",[ct,instance.pk])
 
 @register.simple_tag
-def subscription_toggle_url(object, user, return_url=None):
+def subscription_toggle_link(object, user, return_url=None):
 	ct = ContentType.objects.get_for_model(object.__class__)
 	try:
 		Subscription.objects.get(content_type=ct,object_id=object.pk,user=user)
