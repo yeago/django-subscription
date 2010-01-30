@@ -17,15 +17,17 @@ def subscribe_url(instance):
 	return reverse("unsubscribe",[ct,instance.pk])
 
 @register.simple_tag
-def subscription_toggle_url(instance, user):
-	ct = ContentType.objects.get_for_model(instance.__class__)
+def subscription_toggle_url(object, user, return_url=None):
+	ct = ContentType.objects.get_for_model(object.__class__)
 	try:
-		Subscription.objects.get(content_type=ct,object_id=instance.pk,user=user)
+		Subscription.objects.get(content_type=ct,object_id=object.pk,user=user)
 		url = "subscription_unsubscribe"
 		verbage = "Unsubscribe"
 	except Subscription.DoesNotExist:
 		url = "subscription_subscribe"
 		verbage = "Subscribe"
-
-	return "<a href='%s'>%s</a>" % (reverse(url,args=[ct.pk,instance.pk]),verbage)
+	
+	if return_url:
+		return "<a href='%s?return_url=%s'>%s</a>" % (reverse(url,args=[ct.pk,object.pk]),return_url,verbage)
+	return "<a href='%s'>%s</a>" % (reverse(url,args=[ct.pk,object.pk]),verbage)
 
