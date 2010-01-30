@@ -15,8 +15,13 @@ class Subscription(models.Model):
     user = models.ForeignKey('auth.User')
     content_type = models.ForeignKey('contenttypes.ContentType')
     object_id = models.PositiveIntegerField()
-
     content_object = generic.GenericForeignKey()
+    timestamp = models.DateTimeField(editable=False)
+    def save(self,*args,**kwargs):
+        if not self.timestamp:
+            import datetime
+            self.timestamp = datetime.datetime.now()
+        super(Subscription,self).save(*args,**kwargs)
 
 def email_comment(**kwargs):
     comment = kwargs.pop('comment')

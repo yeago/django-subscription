@@ -21,3 +21,10 @@ def unsubscribe(request,content_type,object_id,success_message="You have been un
 	subscription.delete()
 	request.user.message_set.create(message=success_message)
 	return redirect(request.GET.get('return_url','/'))
+
+def subscriptions_for_user(request,user,queryset=None):
+	if not queryset:
+		queryset = Subscription.objects.all()
+
+	from django.views.generic.list_detail import object_list
+	return object_list(request,queryset.filter(user=user))
