@@ -5,5 +5,9 @@ New comment at http://{{ domain }}{{ c.get_absolute_url }}
 
 {{ c.comment }}
 
-{% if delete %}http://{{ domain }}/comments/delete/{{ c.id }}/{% endif %}
+=====
+{% if delete %}delete - http://{{ domain }}/comments/delete/{{ c.id }}/{% endif %}
+
+unsubscribe - http://{{ domain }}{% url subscription_unsubscribe subscription.content_type_id subscription.object_id %}
+
 {% endautoescape %}

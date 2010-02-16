@@ -38,11 +38,13 @@ def email_comment(**kwargs):
         supress_email = getattr(profile,supress_email_field,False)
         if supress_email:
             continue
+
         c = {
             'domain': site.domain,
             'site_name': site.name,
             'c': comment,
             'delete': i.user.has_perm('comments.delete_comment'),
+	    'subscription': i,
         }
         send_mail(("%s - Comment on %s") % (site.name,comment.content_object), t.render(RequestContext(request,c)), None, [i.user.email])
 
