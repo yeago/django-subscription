@@ -10,6 +10,8 @@ from django.contrib.comments.signals import comment_was_posted
 from django.contrib.sites.models import Site
 from django.contrib.contenttypes import generic
 
+CommentModel = comments.get_model()
+
 class Subscription(models.Model):
     user = models.ForeignKey('auth.User')
     content_type = models.ForeignKey('contenttypes.ContentType')
@@ -49,5 +51,5 @@ def auto_subscribe(**kwargs):
     if getattr(comment.user.get_profile(),auto_subscribe_field,True):
         Subscription.objects.get_or_create(user=comment.user,content_type=comment.content_type,object_id=comment.object_pk)
 
-comment_was_posted.connect(email_comment, sender=comments.get_model())
-comment_was_posted.connect(auto_subscribe, sender=comments.get_model())
+comment_was_posted.connect(email_comment, sender=CommentModel)
+comment_was_posted.connect(auto_subscribe, sender=CommentModel)
