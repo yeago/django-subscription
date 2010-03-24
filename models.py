@@ -6,7 +6,7 @@ from django.conf import settings
 from django.template import loader, RequestContext
 
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.comments.models import Comment
+from django.contrib import comments
 from django.contrib.comments import signals
 from django.contrib.sites.models import Site
 from django.contrib.contenttypes import generic
@@ -54,6 +54,8 @@ def auto_subscribe(**kwargs):
     auto_subscribe_field = getattr(settings,'SUBSCRIPTION_AUTOSUBSCRIBE_PROFILE_FIELD','auto_subscribe')
     if getattr(comment.user.get_profile(),auto_subscribe_field,True):
         Subscription.objects.get_or_create(user=comment.user,content_type=comment.content_type,object_id=comment.object_pk)
+
+Comment = comments.get_model()
 
 signals.comment_was_posted.connect(email_comment, sender=Comment)
 signals.comment_was_posted.connect(auto_subscribe, sender=Comment)
