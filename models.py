@@ -7,6 +7,7 @@ from django.template import loader, RequestContext
 
 from django.contrib import comments
 from django.contrib.comments.signals import comment_was_posted
+from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.contrib.contenttypes import generic
 
@@ -32,6 +33,15 @@ def email_comment(**kwargs):
 		    object_id=comment.object_pk).exclude(user=comment.user)
 
     for i in subscriptions:
+	try:
+            i.user
+        except User.DoesNotExist:
+	    """
+	    User was deleted.
+	    """
+	    i.delete()
+	    continue
+
         if getattr(i.user.get_profile(),supress_email_field,False):
             continue
 
