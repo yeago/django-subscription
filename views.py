@@ -11,7 +11,7 @@ def subscribe(request,content_type,object_id,success_message="Subscription added
 		raise Http404
 
 	Subscription.objects.get_or_create(content_type=content_type,object_id=object_id,user=request.user)
-	messages.success(success_message)
+	messages.success(request,success_message)
 	return redirect(request.GET.get('return_url','/'))
 
 def unsubscribe(request,content_type,object_id,success_message="You have been unsubscribed"):
