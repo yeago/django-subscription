@@ -19,6 +19,8 @@ class Subscription(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey()
     timestamp = models.DateTimeField(editable=False,default=datetime.datetime.now)
+    class Meta:
+	    db_table ="subscription"
 
 def email_comment(**kwargs):
     comment = kwargs.pop('comment')
