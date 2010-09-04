@@ -18,6 +18,9 @@ def subscribe_url(instance):
 
 @register.simple_tag
 def subscription_toggle_link(object, user, return_url=None):
+	if not user.is_authenticated():
+		return ''
+
 	ct = ContentType.objects.get_for_model(object.__class__)
 	try:
 		Subscription.objects.get(content_type=ct,object_id=object.pk,user=user)
