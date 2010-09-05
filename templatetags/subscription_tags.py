@@ -29,6 +29,10 @@ def subscription_toggle_link(object, user, return_url=None):
 	except Subscription.DoesNotExist:
 		url = "subscription_subscribe"
 		verbage = "Subscribe"
+
+	except Subscription.MultipleObjectsReturned:
+		url = "subscription_unsubscribe"
+		verbage = "Unsubscribe"
 	
 	if return_url:
 		return "<a href='%s?return_url=%s'>%s</a>" % (reverse(url,args=[ct.pk,object.pk]),return_url,verbage)
