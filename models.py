@@ -32,7 +32,7 @@ def email_comment(**kwargs):
     t = loader.get_template('comments/email_comment_template.html')
 
     subscriptions = Subscription.objects.filter(content_type=comment.content_type,\
-		    object_id=comment.object_pk).exclude(user=comment.user)
+            object_id=comment.object_pk).exclude(user=comment.user)
 
     for i in subscriptions:
 	try:
@@ -54,8 +54,11 @@ def email_comment(**kwargs):
             'delete': i.user.has_perm('comments.delete_comment'),
             'subscription': i,
         }
+	if not i.user.email:
+            continue
+
         send_mail(("%s - Comment on %s") % (site.name,comment.content_object), \
-			t.render(RequestContext(request,c)), None, [i.user.email])
+       	    t.render(RequestContext(request,c)), None, [i.user.email])
 
 def auto_subscribe(**kwargs):
     comment = kwargs.pop('comment')
