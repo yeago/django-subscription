@@ -17,10 +17,11 @@ class SubscriptionManager(models.Manager):
         backend = kwargs.pop('backend',None) or None
 
         if backend:
-            return subscription.get_backends()[backend](*args, **kwargs)
+            backend_module = subscription.get_backends()[backend]()
+            backend_module.emit(*args, **kwargs)
 
         for backend_module in subscription.get_backends().values():
-            backend_module(*args,**kwargs)
+            backend_module().emit(*args,**kwargs)
 
 class Subscription(models.Model):
     user = models.ForeignKey('auth.User')

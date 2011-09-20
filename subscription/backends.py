@@ -7,9 +7,9 @@ from subscription.models import Subscription
 
 class BaseBackend(object):
     def __call__(obj,*args,**kwargs):
-        return obj(*args,**kwargs)
+        return obj.emit(*args,**kwargs)
 
-    def __init__(self,text,subscribers_of=None,dont_send_to=None,send_only_to=None,actor=None,\
+    def emit(self,text,subscribers_of=None,dont_send_to=None,send_only_to=None,actor=None,\
         actor_display_other=None,actor_display_self=None,format_kwargs=None,**kwargs):
         # subscribers_of - Thing people are subscribed to
         # dont_send_to / send_only_to - useful maybe?
@@ -54,11 +54,11 @@ class BaseBackend(object):
             text = text.format(**_format_kwargs) # Emit, somehow.
             self.emit(i.user,text,**kwargs)
 
-    def emit(self,user,text,**kwargs):
+    def user_emit(self,user,text,**kwargs):
         raise NotImplementedError("Override this!")
 
 class SimpleEmailBackend(BaseBackend):
-    def emit(self,user,text,**kwargs):
+    def user_emit(self,user,text,**kwargs):
         if not user.email:
             return
 
