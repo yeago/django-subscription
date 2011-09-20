@@ -9,7 +9,9 @@ Welcome to django-subscription's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
+
+   yourlabs
 
 Installation
 ------------
