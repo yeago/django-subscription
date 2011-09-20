@@ -28,7 +28,7 @@ Create a file 'subscription_backends.py' with this code::
     from subscription import backends 
     
     class RedisBackend(backends.BaseBackend): 
-        def emit(self,user,text,**kwargs): 
+        def user_emit(self,user,text,**kwargs): 
             conn = Redis() 
             item = simplejson.dumps((time.mktime(datetime.datetime.now().timetuple()),text)) 
             conn.lpush("actstream::%s::undelivered" % user.pk,item) 
