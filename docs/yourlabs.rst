@@ -59,6 +59,9 @@ which will serve as reference for this documentation::
         'friends',
     ]
 
+Note that you don't have to declare `SUBSCRIPTION_NOTIFICATION_QUEUES` in order
+to use multiple queues. It *only* serves as default for methods like `push_states`.
+
 AcknowledgeMiddleware
 `````````````````````
 
@@ -117,6 +120,8 @@ can find it.
 
 Integration with other applications
 ```````````````````````````````````
+
+.. admonition:: Skip this step if you don't want to use multiple queues.
 
 This example also provides integrations with several apps, if they are
 installed. This includes:
