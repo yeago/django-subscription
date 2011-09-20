@@ -216,8 +216,8 @@ class RedisBackend(object):
 
                 if queue not in result.keys():
                     result[queue] = {}
+                    result[queue][u'notifications'] = []
 
-                result[queue][u'notifications'] = []
                 for serialized_notification in serialized_notifications:
                     notification = self.unserialize(serialized_notification, minimal)
                     result[queue][u'notifications'].append(notification)
