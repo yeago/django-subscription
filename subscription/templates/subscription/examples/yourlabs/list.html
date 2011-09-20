@@ -1,0 +1,29 @@
+{% extends 'site_base.html' %}
+
+{% load i18n %}
+
+{% block body %}
+    {% for notification in notification_list %}
+        {% ifchanged notification.datetime.date %}
+            {% if not forloop.first %}
+                </ul>
+            {% endif %}
+        <h3>
+            {% if notification.datetime.date == today %}
+                {% trans 'today' %}
+            {% else %}
+                {{ notification.datetime.date }}
+            {% endif %}
+        </h3>
+        <ul>
+        {% endifchanged %}
+
+        <li>
+            {{ notification.text|safe }}
+        </li>
+
+        {% if forloop.last %}
+            </ul>
+        {% endif %}
+    {% endfor %}
+{% endblock %}
