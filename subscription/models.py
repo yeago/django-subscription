@@ -17,7 +17,7 @@ class SubscriptionManager(models.Manager):
         backend = kwargs.pop('backend',None) or None
 
         if backend:
-            return subscription.get_backends()[backend]
+            return subscription.get_backends()[backend](*args, **kwargs)
 
         for backend_module in subscription.get_backends().values():
             backend_module(*args,**kwargs)
