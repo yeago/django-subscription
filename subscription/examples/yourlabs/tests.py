@@ -73,22 +73,23 @@ class RedisBackendTest(unittest.TestCase):
             self.b.get_key(1, 'unacknowledged', 'default'))
         self.assertEqual(1, result)
 
-    def test_get_new_notifications(self):
+    def test_get_last_notifications(self):
         self.b.user_emit(self.u, 'foo', {}, {'x': 'y', 'timestamp': 5})
-        result = self.b.get_new_notifications(self.u)
+        result = self.b.get_last_notifications(self.u)
         
         expected = {
             'default': {
-                'notifications': [
+                u'notifications': [
                     {
                         u'x': u'y', 
                         u'timestamp': 5, 
-                        u'text': u'foo'
+                        u'text': u'foo',
+                        u'datetime': datetime.datetime(1969, 12, 31, 18, 0, 5),
                     },
                 ], 
-                'counts': {
+                u'counts': {
                     'undelivered': 1, 
-                    'total': 1, 
+                    u'total': 1, 
                     'acknowledged': 0, 
                     'unacknowledged': 0
                 }
@@ -97,11 +98,11 @@ class RedisBackendTest(unittest.TestCase):
 
         self.assertEqual(expected, result)
     
-    def test_get_new_notifications_with_noise(self):
+    def test_get_last_notifications_with_noise(self):
         self.b.user_emit(self.u, 'foo', {}, {'x': 'y','timestamp': 1})
         self.b.push_states(self.u)
         self.b.user_emit(self.u, 'foo', {}, {'x': 'y','timestamp': 3})
-        result = self.b.get_new_notifications(self.u)
+        result = self.b.get_last_notifications(self.u)
         
         expected = {
             'default': {
@@ -109,12 +110,13 @@ class RedisBackendTest(unittest.TestCase):
                     {
                         u'x': u'y', 
                         u'timestamp': 3, 
-                        u'text': u'foo'
+                        u'text': u'foo',
+                        u'datetime': datetime.datetime(1969, 12, 31, 18, 0, 3)
                     },
                 ], 
                 'counts': {
                     'undelivered': 1, 
-                    'total': 2, 
+                    u'total': 2, 
                     'acknowledged': 0, 
                     'unacknowledged': 1
                 }
@@ -262,7 +264,7 @@ class RedisBackendTest(unittest.TestCase):
         # "see X new notifications" link. 
         # Also note, here we specify the queues manually but it would default
         # on setting SUBSCRIPTION_NOTIFICATION_QUEUES
-        result = self.b.get_new_notifications(self.u, 
+        result = self.b.get_last_notifications(self.u, 
             queues=['friends', 'chat'], queue_limit=1)
 
         # so we should push those from the first state to the next state
@@ -287,9 +289,10 @@ class RedisBackendTest(unittest.TestCase):
                 },
                 u'notifications': [
                     {
+                        u'datetime': datetime.datetime(1969, 12, 31, 18, 0, 7),
                         u'actor_pk': 2,
-                         u'text': u'james follows you',
-                         u'timestamp': 7
+                        u'text': u'james follows you',
+                        u'timestamp': 7
                     },
                 ]
             }
@@ -315,7 +318,7 @@ class RedisBackendTest(unittest.TestCase):
 
         # Our user's javascript should poll for new notifications as such
         # (except for the queues argument again)
-        result = self.b.get_new_notifications(self.u, 
+        result = self.b.get_last_notifications(self.u, 
             queues=['friends', 'chat'])
         
         # the javascript will display those so we should push those from the
@@ -334,7 +337,8 @@ class RedisBackendTest(unittest.TestCase):
                     {
                         u'actor_pk': 2,
                         u'text': u'james sent a message',
-                        u'timestamp': 1
+                        u'timestamp': 1,
+                        u'datetime': datetime.datetime(1969, 12, 31, 18, 0, 1),
                     }
                 ]
             },

@@ -197,25 +197,39 @@ class RedisBackend(object):
                     notification, 1)
                 break
 
-    def get_new_notifications(self, user, queues=NOTIFICATION_QUEUES, queue_limit=-1):
+    def get_last_notifications(self, user, queues=NOTIFICATION_QUEUES, 
+        queue_limit=-1, states=NOTIFICATION_STATES, minimal=False):
+
         if queue_limit > 0:
             queue_limit -= 1
 
-        state = NOTIFICATION_STATES[0]
         result = {}
         for queue in queues:
-            serialized_notifications = self.redis.lrange(
-                self.get_key(user, state, queue), 0, queue_limit)
+            for state in states:
+                if queue in result.keys():
+                    if len(result[queue]['notifications']) >= queue_limit:
+                        # enought for this queue
+                        break
 
-            result[queue] = {}
-            result[queue][u'notifications'] = []
-            for serialized_notification in serialized_notifications:
-                result[queue][u'notifications'].append(
-                    self.unserialize(serialized_notification, True))
+                serialized_notifications = self.redis.lrange(
+                    self.get_key(user, state, queue), 0, queue_limit)
 
-            result[queue][u'counts'] = {
-                u'total': 0,
-            }
+                if queue not in result.keys():
+                    result[queue] = {}
+
+                result[queue][u'notifications'] = []
+                for serialized_notification in serialized_notifications:
+                    notification = self.unserialize(serialized_notification, minimal)
+                    result[queue][u'notifications'].append(notification)
+
+                    if len(result[queue]['notifications']) >= queue_limit:
+                        # enought for this queue
+                        break
+
+                result[queue][u'counts'] = {
+                    u'total': 0,
+                }
+
             for s in NOTIFICATION_STATES:
                 length = self.redis.llen(self.get_key(user, s, queue))
                 result[queue][u'counts'][s] = length

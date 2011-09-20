@@ -5,6 +5,7 @@ from django import http
 from django.utils import simplejson
 
 import subscription
+from subscription.examples.yourlabs.settings import *
 
 def list(request,
     template_name='subscription/examples/yourlabs/list.html', 
@@ -31,8 +32,9 @@ def json(request, queue_limit=5):
         return http.HttpResponseForbidden()
 
     b = subscription.get_backends()['site']()
-    notification_list = b.get_new_notifications(request.user, 
-        queue_limit=queue_limit)
+    notification_list = b.get_last_notifications(request.user, 
+        queue_limit=queue_limit, states=NOTIFICATION_STATES[0],
+        minimal=True)
 
     result = http.HttpResponse(simplejson.dumps(notification_list))
     
