@@ -28,7 +28,7 @@ def json(request, queue_limit=15):
 
     b = subscription.get_backends()['site']()
     notification_list = b.get_last_notifications(request.user, 
-        queue_limit=queue_limit)
+        queue_limit=queue_limit, minimal=True, reverse=True)
 
     return http.HttpResponse(simplejson.dumps(notification_list))
 
