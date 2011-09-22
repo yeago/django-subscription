@@ -40,12 +40,10 @@ Then, install the redis-py module for example::
 Install subscription base
 `````````````````````````
 
-.. admonition:: Note that `yourlabs.setup` does all that for you, so if you're
-                using it to emove the boilerplate from settings then you can 
-                skip this step until you want more customization.
+Add to `INSTALLED_APPS`: `subscription.examples.yourlabs`.
 
-If you've put this in a file called `subscription_backends.py` in your project
-root, then this setting would work::
+Start with the base subscription backend, which you will probably override
+later::
 
     SUBSCRIPTION_BACKENDS = { 
         'site': 'subscription.examples.yourlabs.backends.SiteBackend'
@@ -60,27 +58,8 @@ which will serve as reference for this documentation::
     ]
 
 Note that you don't have to declare `SUBSCRIPTION_NOTIFICATION_QUEUES` in order
-to use multiple queues. It *only* serves as default for methods like `push_states`.
-
-AcknowledgeMiddleware
-`````````````````````
-
-.. admonition:: Note that `yourlabs.setup` does all that for you, so if you're
-                using it to emove the boilerplate from settings then you can 
-                skip this step until you want more customization.
-
-You can add the simple middleware that pushes notifications from
-unacknowledged to acknowledged. Add to `MIDDLEWARE_CLASSES`::
-
-    'subscription.examples.yourlabs.middleware.AcknowledgeMiddleware'
-
-This will move notifications from unacknowledged to acknowledged using the
-queue and timestamp from the URL. For example::
-
-    /foo/?subscription_timestamp=12314311&subscription_queue=chat
-
-Will move the notification with timestame `12314311` and queue `chat` from
-unacknowledged to acknowledged.
+to use multiple queues. It *only* serves as default for methods like
+`push_states`. So you're strongly advised to add this setting.
 
 Urls
 ````
@@ -95,7 +74,7 @@ Add to your root urlconf (ie. `urls.py`) urlpatterns::
 This will provide two urls:
 
 - `subscription_list`: a page that lists notifications by day
-- `subscription_json`: returns 10 new notifications as json, and counts
+- `subscription_json`: returns 15 new notifications as json, and counts
 
 If you want to get a different number of notifications as json, just override
 the url, for example::
@@ -113,15 +92,13 @@ Static files
 ````````````
 
 .. admonition:: Skip this step if you're already using the great
-                `django.contrib.staticfiles`
+                `django.contrib.staticfiles` or `django-staticfiles`
 
 Copy subscription/examples/yourlabs/static/subscription where your HTTP server
 can find it.
 
 Integration with other applications
 ```````````````````````````````````
-
-.. admonition:: Skip this step if you don't want to use multiple queues.
 
 This example also provides integrations with several apps, if they are
 installed. This includes:
@@ -130,19 +107,52 @@ installed. This includes:
 - django_messages
 - django-actstream
 
-In most case this is fine. Just add `subscription.examples.yourlabs` to
-INSTALLED_APPS. This will cause django to run
-`subscription.examples.yourlabs.models` which contains all the boilerplate
-code that you might not want to re-invent.
+In most case this is fine. Else you might want to un-register some signals.
+Anyway, you might find useful the shortcut functions `emit_*` in that file.
 
-Templates
-`````````
+New notifications on page rendering
+```````````````````````````````````
 
-.. admonition:: Skip this step if you've completed the above step.
+In your base template, add::
 
-If you just want templates, but no integration with other applications, then
-add the path of `subscription/examples/yourlabs/templates` to
-`settings.TEMPLATE_DIRS`.
+    {% load subscription_yourlabs_tags %}
+
+    {% subscription_yourlabs_widget request 15 %}
+
+This will display the notification widget with 15 initial notifications (which
+is the default).
+
+Live notifications with javascript
+``````````````````````````````````
+
+To power the widget with live updates, load jquery your way and then this
+script::
+
+    {% load static from staticfiles %}
+    <script type="text/javascript" src="{% static 'subscription/jquery-implementation.js' %}" />
+
+Or, if using Pinax, which uses the old staticfiles app::
+
+    <script type="text/javascript" src="{{ STATIC_URL }}subscription/jquery-implementation.js" />
+
+Then, instanciate the Subscription singleton::
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            Subscription.factory('{% url subscription_json %}', '{% url subscription_push %}');
+        });
+    </script>
+
+This will instanciate Subscription into Subscription.singleton. You can
+override any method or option the same way. For example::
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            Subscription.factory('{% url subscription_json %}', {
+                'delay': 1000, /* update every second */
+            });
+        });
+    </script>
 
 Customize the backend
 ---------------------
@@ -170,31 +180,3 @@ root, then this setting would work::
     SUBSCRIPTION_BACKENDS = {
         'site': 'subscription_backends.SiteBackend',
     }
-
-Workflow
---------
-
-Notify that james follows you, where `YOU` is your actual
-`django.contrib.auth.models.User` instance::
-
-    from subscription.models import Subscription
-
-    self.b.user_emit(
-        YOU,
-        'james follows you', 
-        {}, 
-        {
-            'actor_pk': 2,
-            'timestamp': 1,
-        },
-        'friends'
-    )
-
-When `YOU` connect, the base template should render the initial notifications
-list in the notifications widget like at the top left corner of facebook. These
-notifications should be retrieved with::
-
-    result = self.b.get_new_notifications(self.u, queue_limit=5)
-
-The low level workflow is tested in `subscription/examples/yourlabs/tests.py`,
-method `test_facebook_story`.

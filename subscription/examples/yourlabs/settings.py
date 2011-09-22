@@ -1,21 +1,11 @@
 from django.conf import settings
 
-if hasattr(settings, 'SUBSCRIPTION_NOTIFICATION_QUEUES'):
-    NOTIFICATION_QUEUES = settings.SUBSCRIPTION_NOTIFICATION_QUEUES
-else:
-    NOTIFICATION_QUEUES = ['default']
+NOTIFICATION_QUEUES = getattr(settings, 'SUBSCRIPTION_NOTIFICATION_QUEUES',
+    ['default'])
 
-if hasattr(settings, 'SUBSCRIPTION_NOTIFICATION_STATES'):
-    NOTIFICATION_STATES = settings.SUBSCRIPTION_NOTIFICATION_STATES
-else:
-    NOTIFICATION_STATES = ['undelivered', 'unacknowledged', 'acknowledged']
+NOTIFICATION_STATES = getattr(settings, 'SUBSCRIPTION_NOTIFICATION_STATES', 
+    ['undelivered', 'unacknowledged', 'acknowledged'])
 
-if hasattr(settings, 'LANGUAGE_CODE'):
-    LANGUAGE_CODE = settings.LANGUAGE_CODE
-else:
-    LANGUAGE_CODE = 'en'
+LANGUAGE_CODE = getattr(settings, 'LANGUAGE_CODE', 'en')
 
-if hasattr(settings, 'USE_I18N'):
-    USE_I18N = settings.USE_I18N
-else:
-    USE_I18N = False
+USE_I18N = getattr(settings, 'USE_I18N', False)

@@ -1,0 +1,54 @@
+{% load i18n %}
+
+<style type="text/css">
+.subscription div {
+    display: inline-block;
+}
+.subscription .hidden {
+    display: none;
+}
+.subscription .dropdown {
+    overflow: visible;
+    position: absolute;
+    z-index: 100;
+    width: 330px;
+    background-color: white;
+}
+.subscription .list .notification {
+    display: block;
+}
+</style>
+
+<div class="subscription widgets">
+{% for queue_name, queue in notification_list.items %}
+    <div class="queue {{ queue_name }}" id="subscription_queue_{{ queue_name }}">
+        <div class="toggler">
+            <!-- hide this with css when you got your images up -->
+            {{ queue_name }}:
+            <div class="count unacknowledged">
+                {{ queue.counts.unacknowledged }}
+            </div>
+        </div>
+        <div class="dropdown hidden">
+            <div class="list">
+            {% comment %}
+                WARNING: this should match what the javascript renders .. We could
+                DRY that but it would require a dependency to jqtpl or something
+                like that :(
+            {% endcomment %}
+            {% for notification in queue.notifications %}
+                <div class="notification {{ notification.state }}" id="subscription_notification_{{ notification.timestamp }}">
+                    {{ notification.text|safe }}
+                </div>
+            {% endfor %}
+            </div>
+            <div class="more {% if queue.count.acknowledged > queue_limit %}hidden{% endif %} total">
+                <a href="{% url subscription_list %}" class="{% if queue.counts.total <= queue_limit %}hidden{% endif %}">
+                    {% trans 'See all notifications' %} (<span class="total">{{ queue.counts.total }}</span>)
+                </a>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+</div>
+

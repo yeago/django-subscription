@@ -16,46 +16,12 @@ Contents:
 Installation
 ------------
 
-Install redis-py::
+There are two possible installations:
 
-    pip install redis
-
-Create a file 'subscription_backends.py' with this code::
-
-    import time 
-    import datetime 
-    
-    from django.utils import simplejson 
-    from redis import Redis 
-    from subscription import backends 
-    
-    class RedisBackend(backends.BaseBackend): 
-        def user_emit(self,user,text,**kwargs): 
-            conn = Redis() 
-            item = simplejson.dumps((time.mktime(datetime.datetime.now().timetuple()),text)) 
-            conn.lpush("actstream::%s::undelivered" % user.pk,item) 
-
-And add to your project and to settings.py::
-
-    SUBSCRIPTION_BACKENDS = { 
-        'redis': 'subscription_backends.RedisBackend',
-    }
-
-Integration of comments
------------------------
-
-This example demonstrates how to subscribe users to the objects they comment
-automatically::
-
-    from django.contrib.comments.models import Comment
-    from django.contrib.comments.signals import comment_was_posted
-
-    from subscription.models import Subscription
-
-    def auto_subscribe(sender, **kwargs):
-        comment = kwargs.pop('comment')
-        Subscription.objects.subscribe(comment.user,comment.content_object)
-    comment_was_posted.connect(auto_subscribe, sender=Comment)
+- the "bare" installation which is currently described in the README
+- the "example" installation from yourlabs which is described here, in unit
+  tests and docstrings. This will get you started much faster but might be
+  harder to customize than coding everything from scratch ...
 
 Indices and tables
 ==================

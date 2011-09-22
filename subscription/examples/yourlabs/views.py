@@ -20,25 +20,22 @@ def list(request,
     }
 
     context.update(extra_context or {})
-    result = shortcuts.render(request, template_name, context)
+    return shortcuts.render(request, template_name, context)
 
-    # we rendered without problem, let's move undelivered to unacknowledged
-    b.push_states(request.user)
-
-    return result
-
-def json(request, queue_limit=5):
+def json(request, queue_limit=15):
     if not request.user.is_authenticated():
         return http.HttpResponseForbidden()
 
     b = subscription.get_backends()['site']()
     notification_list = b.get_last_notifications(request.user, 
-        queue_limit=queue_limit, states=NOTIFICATION_STATES[0],
-        minimal=True)
+        queue_limit=queue_limit)
 
-    result = http.HttpResponse(simplejson.dumps(notification_list))
+    return http.HttpResponse(simplejson.dumps(notification_list))
+
+def push(request):
+    queue = request.GET['queue']
+
+    b = subscription.get_backends()['site']()
+    b.push_state(request.user, NOTIFICATION_STATES[1], queue)
     
-    # we rendered without problem, let's move undelivered to unacknowledged
-    b.push_states(request.user)
-
-    return result
+    return http.HttpResponse('OK')
