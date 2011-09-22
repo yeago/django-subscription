@@ -49,7 +49,7 @@ if 'actstream' in APPS:
         emit_new_follower(kwargs['instance'].actor, kwargs['instance'].user)
     signals.post_save.connect(auto_follow_notification, sender=Follow)
 
-    def emit_new_follower(follower, user):
+    def emit_new_follower(user, follower):
         Subscription.objects.emit(
             u'%(actor)s follows you',
             send_only_to=[user],
