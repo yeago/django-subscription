@@ -298,7 +298,7 @@ class AppIntegrationBackend(object):
         t = self.get_user_translation(user)
         l = self.get_user_language_code(user)
 
-        target_html = '<a href="%(url)s" class="acknowledge">%(name)s</a>'
+        target_html = '<a href="%(url)s">%(name)s</a>'
         target_context = {}
 
         if 'comment' in context.keys():
@@ -313,14 +313,18 @@ class AppIntegrationBackend(object):
                 if content.actor == user:
                     target_context['name'] = t.gettext('your action')
                 else:
-                    target_context['name'] = '%s\'s action' % actor.username
+                    target_context['name'] = t.gettext('%s\'s action') % actor.username
             elif content.__class__.__name__ == 'User':
                 if content == user:
                     target_context['name'] = t.gettext('your status')
                 else:
-                    target_context['name'] = '%s\'s status' % actor.username
+                    target_context['name'] = t.gettext('%s\'s status') % actor.username
+            
+        if 'message' in context.keys():
+            target_context['url'] = context['message'].get_absolute_url()
+            target_context['name'] = t.gettext('private message')
 
-            context['target'] = target_html % target_context
+        context['target'] = target_html % target_context
         return context
 
 class SiteBackend(AppIntegrationBackend, TranslationBackend, PinaxBackend, 
