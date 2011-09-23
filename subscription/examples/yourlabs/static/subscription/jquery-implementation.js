@@ -4,7 +4,7 @@ Subscription = function(json_url, push_url, override) {
         'json_url': json_url,
         'push_url': push_url,
         'queue_limit': 10,
-        'delivered': [],
+        'last_data': {},
         'setup_dropdown': function() {
             $('.subscription .queue .toggler').click(function() {
                 var dropdown = $(this).parents('.queue').find('.dropdown');
@@ -13,11 +13,14 @@ Subscription = function(json_url, push_url, override) {
                     dropdown.slideUp();
                 } else {
                     dropdown.slideDown();
+
                     var queue_name = Subscription.singleton.get_queue_name($(this));
-                    Subscription.singleton.display_count('unacknowledged', queue_name, '0');
-                    $.get(Subscription.singleton.push_url, {
-                        'queue': queue_name,
-                    });
+                    if (Subscription.singleton.last_data[queue_name]['counts']['unacknowledged'] > 0) {
+                        Subscription.singleton.display_count('unacknowledged', queue_name, '0');
+                        $.get(Subscription.singleton.push_url, {
+                            'queue': queue_name,
+                        });
+                    }
                 }
             });
             $('.subscription .dropdown').hover(function() {
@@ -49,6 +52,8 @@ Subscription = function(json_url, push_url, override) {
             var json_url = Subscription.singleton.json_url + '?x=' + Math.round(new Date().getTime());
             $.getJSON(json_url, function(data, text_status, jq_xhr) {
                 var queue, notification;
+
+                Subscription.singleton.last_data = data;
 
                 for(var queue_name in data) {
                     queue = data[queue_name];
