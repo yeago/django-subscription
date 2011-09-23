@@ -5,6 +5,7 @@ from django.utils import simplejson
 from django.core.mail import send_mail
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import trans_real
+from django.contrib.auth.models import User
 
 from redis import Redis
 from subscription.models import Subscription
@@ -14,7 +15,7 @@ from exceptions import *
 
 class BaseBackend(object):
     def emit(self, text, subscribers_of=None, dont_send_to=None, queue=None,
-             send_only_to=None, actor=None, context=None, **kwargs):
+             send_only_to=None, context=None, **kwargs):
 
         if context is None:
             context = {}
@@ -22,7 +23,7 @@ class BaseBackend(object):
         if send_only_to and not subscribers_of:
             for recipient in send_only_to:
                 self.user_emit(recipient,
-                    self.user_render(actor, text, recipient, context, kwargs),
+                    self.user_render(text, recipient, context, kwargs),
                     context, kwargs, queue)
 
             return
@@ -39,11 +40,11 @@ class BaseBackend(object):
             if send_only_to and i.user not in send_only_to:
                 continue
 
-            user_text = self.user_render(actor, text, i.user, context, kwargs)
+            user_text = self.user_render(text, i.user, context, kwargs)
             self.user_emit(i.user, user_text, context, kwargs, queue)
 
-    def user_render(self, actor, text, user, context, kwargs):
-        context = self.process_user_context(actor, text, user, context, kwargs)
+    def user_render(self, text, user, context, kwargs):
+        context = self.process_user_context(text, user, context, kwargs)
         t = self.get_user_translation(user)
         if t:
             text = t.gettext(text) % context
@@ -55,7 +56,7 @@ class BaseBackend(object):
                   queue='default', state=NOTIFICATION_STATES[0]):
         raise NotImplementedError("Override this!")
 
-    def process_user_context(self, actor, text, user, context, kwargs):
+    def process_user_context(self, text, user, context, kwargs):
         """
         Implement your own context processor here, it's used by user_render
         """
@@ -87,33 +88,29 @@ class PinaxBackend(object):
 
 class HtmlBackend(object):
     """
-    HTML implementation of 'actor' rendering.
+    HTML implementation of user rendering.
     """
-    def process_user_context(self, actor, text, user, context, kwargs):
+    def process_user_context(self, text, user, context, kwargs):
         """
-        If 'actor' is not already in context:
+        This method iterates over all context variables, and if it finds a user
+        instance in 'actor' for example, it will create an 'actor_display' key:
         - if actor is the user:
-            - if translation: translated 'yo'
-            - else: just 'yo'
+            - if translation: translated 'you'
+            - else: just 'you'
         - else: a link to the actor using actor.get_absolute_url
         """
-        if 'actor' not in context.keys():
-            t = self.get_user_translation(user)
-            if user == actor:
-                if hasattr(self, 'actor_display_self'):
-                    context['actor'] = self.actor_display_self
+        t = self.get_user_translation(user)
 
-                if t:
-                    context['actor'] = t.gettext('Yo')
+        for key, value in context.items():
+            if isinstance(value, User):
+                display_key = '%s_display' % key
+
+                if value == user:
+                    context[display_key] = t.gettext('You')
                 else:
-                    context['actor'] = 'Yo'
-            else:
-                if hasattr(self, 'actor_display_other'):
-                    context['actor'] = self.actor_display_other
-                else:
-                    context['actor'] = '<a href="%s">%s</a>' % (
-                        actor.get_absolute_url(),
-                        actor.username,
+                    context[display_key] = '<a href="%s">%s</a>' % (
+                        value.get_absolute_url(),
+                        value.username,
                     )
 
         return context
@@ -292,9 +289,9 @@ class AppIntegrationBackend(object):
     def get_user_object_url(self, user, obj):
         return obj.get_absolute_url()
 
-    def process_user_context(self, actor, text, user, context, kwargs):
+    def process_user_context(self, text, user, context, kwargs):
         context = super(AppIntegrationBackend, self).process_user_context(
-                        actor, text, user, context, kwargs)
+                        text, user, context, kwargs)
         t = self.get_user_translation(user)
         l = self.get_user_language_code(user)
 
@@ -313,12 +310,12 @@ class AppIntegrationBackend(object):
                 if content.actor == user:
                     target_context['name'] = t.gettext('your action')
                 else:
-                    target_context['name'] = t.gettext('%s\'s action') % actor.username
+                    target_context['name'] = t.gettext('%s\'s action') % content.actor.username
             elif content.__class__.__name__ == 'User':
                 if content == user:
                     target_context['name'] = t.gettext('your status')
                 else:
-                    target_context['name'] = t.gettext('%s\'s status') % actor.username
+                    target_context['name'] = t.gettext('%s\'s status') % content.username
             
         if 'message' in context.keys():
             target_context['url'] = context['message'].get_absolute_url()

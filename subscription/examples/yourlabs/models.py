@@ -18,13 +18,13 @@ if 'django.contrib.comments' in APPS:
 
     def emit_new_comment(comment):
         Subscription.objects.emit(
-            u'%(actor)s commented on %(target)s',
+            u'%(actor_display)s commented on %(target)s',
             subscribers_of=comment.content_object,
             dont_send_to=[comment.user],
             context={
                 'comment': comment,
+                'actor': comment.user,
             },
-            actor=comment.user,
             queue='chat',
         )
 
@@ -57,10 +57,10 @@ if 'actstream' in APPS:
 
     def emit_new_follower(user, follower):
         Subscription.objects.emit(
-            u'%(actor)s follows you',
+            u'%(actor_display)s follows you',
             send_only_to=[user],
-            actor=follower,
             queue='friends',
+            context={'actor': follower},
         )
 
 if 'django_messages' in APPS:
@@ -74,11 +74,11 @@ if 'django_messages' in APPS:
 
     def emit_new_message(message):
         Subscription.objects.emit(
-            u'%(actor)s sent you a %(target)s',
+            u'%(actor_display)s sent you a %(target)s',
             send_only_to=[message.recipient],
             context={
                 'message': message,
+                'actor': message.sender,
             },
-            actor=message.sender,
             queue='chat',
         )
