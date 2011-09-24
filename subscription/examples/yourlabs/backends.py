@@ -1,11 +1,11 @@
 import datetime
 import time
 
+from django.utils.importlib import import_module
 from django.utils import simplejson
-from django.core.mail import send_mail
 from django.contrib.contenttypes.models import ContentType
-from django.utils.translation import trans_real
 from django.contrib.auth.models import User
+from django.conf import settings
 
 from redis import Redis
 from subscription.models import Subscription
@@ -14,108 +14,31 @@ from settings import *
 from exceptions import *
 
 class BaseBackend(object):
-    def emit(self, text, subscribers_of=None, dont_send_to=None, queue=None,
-             send_only_to=None, context=None, **kwargs):
+    def emit(self, notification, subscribers_of=None, dont_send_to=None, 
+        send_to=None, state=NOTIFICATION_STATES[0], 
+        queue=NOTIFICATION_QUEUES[0]):
 
-        if context is None:
-            context = {}
+        if send_to is None:
+            send_to = []
 
-        if send_only_to and not subscribers_of:
-            for recipient in send_only_to:
-                self.user_emit(recipient,
-                    self.user_render(text, recipient, context, kwargs),
-                    context, kwargs, queue)
+        send_to = list(send_to)
+        if subscribers_of:
+            ct = ContentType.objects.get_for_model(subscribers_of)
+            send_to += list(User.objects.filter(
+                subscription__content_type=ct, object_id=subscribers_of.pk))
 
-            return
+        notification.sent_at = datetime.datetime.now()
 
-        self.content_type = ContentType.objects.get_for_model(subscribers_of)
-        subscription_kwargs = {'content_type': self.content_type, 'object_id': subscribers_of.pk}
-        if send_only_to:
-            subscription_kwargs.update({'user__in': send_only_to})
-
-        for i in Subscription.objects.filter(**subscription_kwargs):
-            if i.user in (dont_send_to or []):
+        for user in send_to:
+            if user in dont_send_to:
                 continue
 
-            if send_only_to and i.user not in send_only_to:
-                continue
+            self.user_emit(user, notification, state, queue)
 
-            user_text = self.user_render(text, i.user, context, kwargs)
-            self.user_emit(i.user, user_text, context, kwargs, queue)
-
-    def user_render(self, text, user, context, kwargs):
-        context = self.process_user_context(text, user, context, kwargs)
-        t = self.get_user_translation(user)
-        if t:
-            text = t.gettext(text) % context
-        else:
-            text = text % context
-        return text
-
-    def user_emit(self, user, text, context, kwargs=None,
-                  queue='default', state=NOTIFICATION_STATES[0]):
+    def user_emit(self, user, state, queue):
         raise NotImplementedError("Override this!")
 
-    def process_user_context(self, text, user, context, kwargs):
-        """
-        Implement your own context processor here, it's used by user_render
-        """
-        return context
-
-class TranslationBackend(object):
-    def get_user_language_code(self, user):
-        """
-        Override to get the language from the user's profile if you want.
-        """
-        return LANGUAGE_CODE
-
-    def get_user_translation(self, user):
-        """
-        Convenience method which you probably do not want to override
-        """
-        if USE_I18N:
-            return trans_real.translation(self.get_user_language_code(user))
-        else:
-            return None
-
-class PinaxBackend(object):
-    """
-    Implementation of get_user_language code for pinax.apps.account
-    """
-    def get_user_language_code(self, user):
-        account = user.account_set.all()[0]
-        return account.language
-
-class HtmlBackend(object):
-    """
-    HTML implementation of user rendering.
-    """
-    def process_user_context(self, text, user, context, kwargs):
-        """
-        This method iterates over all context variables, and if it finds a user
-        instance in 'actor' for example, it will create an 'actor_display' key:
-        - if actor is the user:
-            - if translation: translated 'you'
-            - else: just 'you'
-        - else: a link to the actor using actor.get_absolute_url
-        """
-        t = self.get_user_translation(user)
-
-        for key, value in context.items():
-            if isinstance(value, User):
-                display_key = '%s_display' % key
-
-                if value == user:
-                    context[display_key] = t.gettext('You')
-                else:
-                    context[display_key] = '<a href="%s">%s</a>' % (
-                        value.get_absolute_url(),
-                        value.username,
-                    )
-
-        return context
-
-class RedisBackend(object):
+class RedisBackend(BaseBackend):
     def __init__(self, prefix='subscription'):
         self.prefix = prefix
 
@@ -125,7 +48,7 @@ class RedisBackend(object):
             self._redis = Redis()
         return self._redis
 
-    def get_key(self, user, state, queue='default'):
+    def get_key(self, user, state, queue=NOTIFICATION_QUEUES[0]):
         if hasattr(user, 'pk'):
             user = user.pk
 
@@ -136,7 +59,7 @@ class RedisBackend(object):
             queue,
         )
 
-    def get_timestamps_key(self, user, queue='default'):
+    def get_timestamps_key(self, user, queue=NOTIFICATION_QUEUES[0]):
         if hasattr(user, 'pk'):
             user = user.pk
 
@@ -174,8 +97,8 @@ class RedisBackend(object):
             self.redis.lrem(self.get_key(user, state, queue), notification)
 
     def get_last_notifications(self, user, queues=NOTIFICATION_QUEUES, 
-        queue_limit=-1, states=[NOTIFICATION_STATES[0]], minimal=False, 
-        reverse=False, push=[NOTIFICATION_STATES[0]]):
+        queue_limit=-1, states=[NOTIFICATION_STATES[0]], reverse=False,
+        push=[NOTIFICATION_STATES[0]]):
 
         if queue_limit > 0:
             redis_queue_limit = queue_limit - 1
@@ -198,7 +121,7 @@ class RedisBackend(object):
                     result[queue]['notifications'] = []
 
                 for serialized_notification in serialized_notifications:
-                    notification = self.unserialize(serialized_notification, minimal)
+                    notification = self.unserialize(serialized_notification)
                     notification['initial_state'] = state
                     result[queue]['notifications'].append(notification)
 
@@ -249,92 +172,29 @@ class RedisBackend(object):
                     self.push_state(user, state, queue)
 
         return result
-    
-    def user_emit(self, user, text, context=None, kwargs=None, 
-                  queue='default', state=NOTIFICATION_STATES[0]):
-        context = context or {}
 
-        if 'timestamp' not in kwargs:
-            timestamp = time.mktime(datetime.datetime.now().timetuple())
-        else:
-            timestamp = kwargs['timestamp']
+    def user_emit(self, user, notification, state=NOTIFICATION_STATES[0], 
+        queue=NOTIFICATION_QUEUES[0]):
+        
+        if not hasattr(notification, 'timestamp'):
+            notification.sent_at = datetime.datetime.now()
 
-        timestamps = self.redis.lrange(
-            self.get_timestamps_key(user, queue), 0, -1)
+        self.redis.lpush(self.get_key(user, state, queue), 
+            self.serialize(user, notification))
 
-        while str(timestamp) in timestamps:
-            timestamp += 1
+    def serialize(self, user, notification):
+        cls = notification.__class__
+        return simplejson.dumps((
+            '%s.%s' % (cls.__module__, cls.__name__),
+            notification.to_dict(user),
+        ))
 
-        timestamp = int(timestamp)
-
-        kwargs['timestamp'] = timestamp
-        notification = self.serialize(user, text, context, kwargs)
-
-        self.redis.lpush(self.get_timestamps_key(user, queue), timestamp)
-        self.redis.lpush(self.get_key(user, state, queue), notification)
-
-    def serialize(self, user, text, context, kwargs):
-        kwargs['text'] = text
-        return simplejson.dumps(kwargs)
-
-    def unserialize(self, data, minimal=False):
+    def unserialize(self, data):
         data = simplejson.loads(data)
-        if not minimal:
-            if 'timestamp' in data.keys():
-                data['datetime'] = datetime.datetime.fromtimestamp(
-                    data['timestamp'])
-        return data
 
-class AppIntegrationBackend(object):
-    def get_user_object_url(self, user, obj):
-        return obj.get_absolute_url()
+        tmp = data[0].split('.')
+        cls = tmp.pop()
+        module = '.'.join(tmp)
+        cls = getattr(import_module(module), cls)
 
-    def process_user_context(self, text, user, context, kwargs):
-        context = super(AppIntegrationBackend, self).process_user_context(
-                        text, user, context, kwargs)
-        t = self.get_user_translation(user)
-        l = self.get_user_language_code(user)
-
-        target_html = '<a href="%(url)s">%(name)s</a>'
-        target_context = {}
-
-        if 'comment' in context.keys():
-            content = context['comment'].content_object
-
-            target_context['url'] = self.get_user_object_url(user, content)
-
-            attr = 'name_%s' % l
-            if hasattr(content, attr):
-                target_context['name'] = getattr(content, attr)
-            elif content.__class__.__name__ == 'Action':
-                if content.actor == user:
-                    target_context['name'] = t.gettext('your action')
-                else:
-                    target_context['name'] = t.gettext('%s\'s action') % content.actor.username
-            elif content.__class__.__name__ == 'User':
-                if content == user:
-                    target_context['name'] = t.gettext('your status')
-                else:
-                    target_context['name'] = t.gettext('%s\'s status') % content.username
-            
-        if 'message' in context.keys():
-            target_context['url'] = context['message'].get_absolute_url()
-            target_context['name'] = t.gettext('private message')
-
-        context['target'] = target_html % target_context
-        return context
-
-class SiteBackend(AppIntegrationBackend, TranslationBackend, PinaxBackend, 
-                  HtmlBackend, RedisBackend, BaseBackend):
-    pass
-
-try:
-    # monkey patch localeurl support .. which we'll get rid of with django 1.4
-    from localeurl.utils import locale_url, strip_path
-    def user_object_localeurl(self, user, obj):
-        l = self.get_user_language_code(user)
-        url = locale_url(strip_path(obj.get_absolute_url())[1], l)
-        return url
-    AppIntegrationBackend.get_user_object_url = user_object_localeurl
-except ImportError:
-    pass
+        return cls(user=user, **data[1])
