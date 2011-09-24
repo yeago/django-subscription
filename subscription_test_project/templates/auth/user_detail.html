@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% load comments %}
+
+{% block body %}
+{{ user }}
+
+{% render_comment_list for user %}
+{% render_comment_form for user %}
+
+{% endblock %}

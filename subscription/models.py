@@ -13,16 +13,6 @@ class SubscriptionManager(models.Manager):
         ct = ContentType.objects.get_for_model(obj)
         Subscription.objects.get_or_create(content_type=ct,object_id=obj.pk,user=user)
 
-    def emit(self,*args,**kwargs):
-        backend = kwargs.pop('backend',None) or None
-
-        if backend:
-            backend_module = subscription.get_backends()[backend]()
-            backend_module.emit(*args, **kwargs)
-
-        for backend_module in subscription.get_backends().values():
-            backend_module().emit(*args,**kwargs)
-
 class Subscription(models.Model):
     user = models.ForeignKey('auth.User')
     content_type = models.ForeignKey('contenttypes.ContentType')

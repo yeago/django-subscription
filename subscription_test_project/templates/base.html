@@ -1,0 +1,34 @@
+{% load subscription_yourlabs_tags %}
+{% load static %}
+{% get_static_prefix as STATIC_PREFIX %}
+<html>
+    <head>
+        <style type="text/css">
+            .header {
+                height: 30px;
+                background-color: #FFF000;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            {% subscription_yourlabs_widget request %}
+            
+        </div>
+        
+        hello {{ request.user }}
+
+        <div class="body">
+            {% block body %}
+            {% endblock %}
+        </div>
+
+        <script type="text/javascript" src="{{ STATIC_PREFIX }}admin/js/jquery.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_PREFIX }}subscription/jquery-implementation.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                Subscription.factory('{% url subscription_json %}', '{% url subscription_push %}');
+            });
+        </script>
+    </body>
+</html>

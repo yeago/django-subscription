@@ -11,7 +11,7 @@ def list(request,
     template_name='subscription/examples/yourlabs/list.html', 
     extra_context=None):
 
-    b = subscription.get_backends()['site']()
+    b = subscription.get_backends()['redis']()
     notification_list = b.get_all_notifications(request.user)
 
     context = {
@@ -26,7 +26,7 @@ def json(request, queue_limit=15):
     if not request.user.is_authenticated():
         return http.HttpResponseForbidden()
 
-    b = subscription.get_backends()['site']()
+    b = subscription.get_backends()['redis']()
     notification_list = b.get_last_notifications(request.user, 
         queue_limit=queue_limit, minimal=True, reverse=True)
 
@@ -35,7 +35,7 @@ def json(request, queue_limit=15):
 def push(request):
     queue = request.GET['queue']
 
-    b = subscription.get_backends()['site']()
+    b = subscription.get_backends()['redis']()
     b.push_state(request.user, NOTIFICATION_STATES[1], queue)
     
     return http.HttpResponse('OK')

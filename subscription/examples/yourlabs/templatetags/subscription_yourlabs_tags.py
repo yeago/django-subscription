@@ -9,7 +9,7 @@ def subscription_yourlabs_widget(request, queue_limit=15):
     if not request.user.is_authenticated():
         return {}
 
-    b = subscription.get_backends()['site']()
+    b = subscription.get_backends()['redis']()
     notification_list = b.get_last_notifications(request.user, 
         states=NOTIFICATION_STATES, queue_limit=queue_limit)
 

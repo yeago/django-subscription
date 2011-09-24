@@ -1,17 +1,14 @@
 from django.conf.urls.defaults import patterns, include, url
+from django.contrib import admin
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
+import project_specific
+
+admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Examples:
     # url(r'^$', 'subscription_test_project.views.home', name='home'),
-    # url(r'^subscription_test_project/', include('subscription_test_project.foo.urls')),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
-    # url(r'^admin/', include(admin.site.urls)),
+    url(r'^user/(?P<username>[a-z]+)/$', project_specific.user_detail, name='user_detail'),
+    url(r'^subscriptions/', include('subscription.examples.yourlabs.urls')),
+    url(r'^comments/', include('django.contrib.comments.urls')),
+    url(r'^admin/', include(admin.site.urls)),
 )

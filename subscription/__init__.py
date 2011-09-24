@@ -7,6 +7,7 @@ def load_backend(path):
     try:
         mod = import_module(module)
     except ImportError, e:
+        raise 
         raise ImproperlyConfigured('Error importing subscription backend %s: "%s"' % (path, e))
     except ValueError, e:
         raise ImproperlyConfigured('Error importing subscription backends. Is SUBSCRIPTION_BACKENDS a correctly defined dictionary?')
