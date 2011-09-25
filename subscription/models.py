@@ -13,6 +13,11 @@ class SubscriptionManager(models.Manager):
         ct = ContentType.objects.get_for_model(obj)
         Subscription.objects.get_or_create(content_type=ct,object_id=obj.pk,user=user)
 
+    def subscribers_of(self, obj):
+        ct = ContentType.objects.get_for_model(subscribers_of)
+        return User.objects.filter(subscription__content_type=ct, 
+            subscription__object_id=subscribers_of.pk)
+
 class Subscription(models.Model):
     user = models.ForeignKey('auth.User')
     content_type = models.ForeignKey('contenttypes.ContentType')

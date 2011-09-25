@@ -81,7 +81,7 @@ INSTALLED_APPS = (
 )
 
 SUBSCRIPTION_BACKENDS = {
-    'redis': 'subscription.examples.yourlabs.backends.RedisBackend',
+    'storage': 'subscription.examples.yourlabs.backends.RedisBackend',
 }
 
 SUBSCRIPTION_NOTIFICATION_QUEUES = [

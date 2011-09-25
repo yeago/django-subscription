@@ -1,28 +1,26 @@
 import base
+from helpers import *
 
 class TextNotification(base.BaseNotification):
-    def to_dict(self, user):
-        data = super(TextNotification, self).to_dict(user)
+    def __getstate__(self):
+        if not getattr(self, 'lazy', False):
+            self.rendered = self.display()
+        else:
+            if hasattr(self, 'rendered'):
+                del self.rendered
+        return super(TextNotification, self).__getstate__()
 
-        for key, value in self.format_kwargs.items():
-            if user == value:
-                self.format_kwargs['%s_display' % key] = u'you'
+    def display(self, viewer=None, view=None):
+        context = {}
+        for key, value in self.__dict__.items():
+            if isinstance(value, Variable):
+                value = value.value
+
+            if viewer is not None and value == viewer:
+                context[key] = u'you'
             elif hasattr(value, 'get_absolute_url'):
-                self.format_kwargs['%s_display' % key] = u'<a href="%s">%s</a>' % (
+                context[key] = u'<a href="%s">%s</a>' % (
                     value.get_absolute_url(), unicode(value))
-
-        data['text'] = self.text.capitalize() % self.format_kwargs
-        return data
-
-    def get_display(self, user, backend):
-        return self.text
-
-class LazyTextNotification(TextNotification):
-    def to_dict(self, user):
-        data = super(TextNotification, self).to_dict(user)
-        data['text'] = self.text
-        data['format_kwargs'] = self.format_kwargs
-        return  data
-
-    def get_display(self, user, backend):
-        return self.text % self.format_kwargs
+            else:
+                context[key] = value
+        return self.text % context

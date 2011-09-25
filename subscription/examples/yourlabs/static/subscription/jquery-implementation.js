@@ -13,14 +13,13 @@ Subscription = function(json_url, push_url, override) {
                 } else {
                     dropdown.slideDown();
 
-                    var queue_name = Subscription.singleton.get_queue_name($(this));
-                    var counter = $('.subscription .'+queue_name+' .count.unacknowledged');
-                    var count = parseInt(counter.html());
+                    var dropdown_name = Subscription.singleton.get_dropdown_name($(this));
+                    var counter = parseInt($(this).find('.counter').html());
 
                     if (counter > 0) {
-                        counter.html(0);
+                        counter.html('0');
                         $.get(Subscription.singleton.push_url, {
-                            'queue': queue_name,
+                            'dropdown': dropdown_name,
                         });
                     }
                 }
@@ -36,24 +35,18 @@ Subscription = function(json_url, push_url, override) {
                 }
             });
         },
-        'display': function(queues) {
-            var queue, notification;
-            console.log(queues)
+        'display': function(dropdowns) {
+            console.log(dropdowns)
 
-            for(var queue_name in queues) {
-                queue = queues[queue_name];
-                
-                $('.subscription .queue.'+queue_name+' .count.unacknowledged').html(queue['count']);
-
-                if (queue['dropdown'] !== undefined) {
-                    $('.subscription .queue.'+queue_name+' .dropdown').html(queue['dropdown']);
-                }
+            for(var dropdown_name in dropdowns) {
+                var wrapper = $('#subscription_dropdown_' + dropdown_name);
+                wrapper.html(dropdowns[dropdown_name]);
             }
         },
         'refresh': function() {
             var json_url = Subscription.singleton.json_url + '?x=' + Math.round(new Date().getTime());
-            $.getJSON(json_url, function(queues, text_status, jq_xhr) {
-                Subscription.singleton.display(queues);
+            $.getJSON(json_url, function(dropdowns, text_status, jq_xhr) {
+                Subscription.singleton.display(dropdowns);
             }).fail(Subscription.singleton.set_timeout)
               .done(Subscription.singleton.set_timeout);
         },
@@ -62,18 +55,11 @@ Subscription = function(json_url, push_url, override) {
                 Subscription.singleton.refresh()
             }, Subscription.singleton.delay);
         },
-        'get_queue_name': function(el) {
+        'get_dropdown_name': function(el) {
             var queue_el = el.is('.queue') ? el : el.parents('.queue');
             return queue_el.attr('id').match(/subscription_queue_(.+)$/)[1];
         },
-        'get_last_timestamp': function(queue) {
-            var el = $('#subscription_queue_' + queue + ' .notification:first');
-            return Subscription.singleton.get_timestamp_from_notification(el);
-        },
-        'get_timestamp_from_notification': function(el) {
-            var notification_el = el.is('.notification') ? el : el.parents('.notification');
-            return notification_el.attr('id').match(/timestamp_([0-9]+)/)[1];
-        },
+
     }, override);
 
     return instance

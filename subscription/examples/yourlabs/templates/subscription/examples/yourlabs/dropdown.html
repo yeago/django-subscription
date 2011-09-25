@@ -1,6 +1,13 @@
 {% load i18n %}
 {% load subscription_yourlabs_tags %}
 
+<div class="toggler">
+    {{ dropdown }}:
+    <div class="counter">
+        {{ counter }}
+    </div>
+</div>
+<div class="dropdown hidden">
 {% if notifications|length == 0 %}
     <div class="empty">
         {% trans 'You have not received any notification yet' %}
@@ -8,7 +15,7 @@
 {% else %}
     <div class="list">
     {% for notification in notifications %}
-        <div class="notification {{ notification.initial_state }}" id="subscription_notification_{{ notification.timestamp }}">
+        <div class="notification" id="subscription_notification_{{ notification.timestamp }}">
             {% yourlabs_notification_render notification 'dropdown' %}
         </div>
     {% endfor %}
@@ -19,3 +26,4 @@
         </a>
     </div>
 {% endif %}
+</div>

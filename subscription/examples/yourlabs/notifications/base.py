@@ -1,24 +1,23 @@
 import datetime, time
 
+try:
+   import cPickle as pickle
+except:
+   import pickle
+
 import subscription
 
 class BaseNotification(object):
-    def emit(self, *args, **kwargs):
-        backend = kwargs.pop('backend',None) or None
-
-        if backend:
-            backend_module = subscription.get_backends()[backend]()
-            backend_module.emit(self, *args, **kwargs)
+    def emit(self, queues=None):
+        if queues is None and hasattr(self, 'queues'):
+            queues = self.queues
 
         for backend_module in subscription.get_backends().values():
-            backend_module().emit(self, *args,**kwargs)
+            backend_module().emit(self, queues)
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
-        
-        if 'timestamp' in kwargs.keys():
-            self.sent_at = datetime.datetime.fromtimestamp(kwargs['timestamp'])
 
     def __setattr__(self, key, value):
         if key == 'timestamp':
@@ -28,10 +27,5 @@ class BaseNotification(object):
         
         self.__dict__[key] = value
 
-    def to_dict(self, user):
-        return {
-            'timestamp': self.timestamp,
-        }
-
-    def get_display_for(self, user, view=None):
+    def display(self, viewer=None, view=None):
         raise NotImplementedError()

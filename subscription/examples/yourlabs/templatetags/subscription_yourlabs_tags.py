@@ -5,28 +5,28 @@ from subscription.examples.yourlabs.settings import *
 
 register = template.Library()
 
-@register.inclusion_tag('subscription/examples/yourlabs/widget.html')
-def yourlabs_notification_widget(request, limit=15):
+@register.inclusion_tag('subscription/examples/yourlabs/dropdown.html')
+def subscription_yourlabs_dropdown(request, dropdown, states, count, limit=15):
     if not request.user.is_authenticated():
         return {}
 
-    b = subscription.get_backends()['redis']()
+    b = subscription.get_backends()['storage']()
 
-    queues = {}
-    for queue in NOTIFICATION_QUEUES:
-        queues[queue] = {
-            'notifications': [],
-            'counts': {},
-        }
-        for state in reversed(NOTIFICATION_STATES):
-            queues[queue]['notifications'] += b.get_notifications(request.user, 
-                state, queue, limit=limit-len(queues[queue]['notifications']))
-            queues[queue]['counts'][state] = b.count_notifications(
-                request.user, state, queue)
+    notifications = []
+    for state in states.split(','):
+        q = 'dropdown=%s,user=%s,%s' % (dropdown, request.user.pk, state)
+        notifications += b.get_notifications(q, limit-len(notifications))
 
-    print queues['chat']['notifications']
-
-    return {'queues': queues, 'request': request}
+    counter = 0
+    for state in count.split(','):
+        q = 'dropdown=%s,user=%s,%s' % (dropdown, request.user.pk, state)
+        counter += b.count_notifications(q)
+    
+    return {
+        'notifications': notifications,
+        'counter': counter,
+        'dropdown': dropdown,
+    }
 
 @register.simple_tag(takes_context=True)
 def yourlabs_notification_render(context, notification, view):

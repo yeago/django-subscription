@@ -8,17 +8,24 @@ from django.utils import simplejson
 import subscription
 from subscription.examples.yourlabs.settings import *
 
-def list(request,
+def list(request, rename=None,
     template_name='subscription/examples/yourlabs/list.html', 
     extra_context=None):
+    
+    if rename is None:
+        rename = {}
+
+    queues = request.GET.get('queues', 'default').split(';')
 
     b = subscription.get_backends()['redis']()
 
     notifications = []
-    for queue in NOTIFICATION_QUEUES:
-        for state in NOTIFICATION_STATES:
-            notifications += b.get_notifications(request.user, state, queue)
-            b.push_state(request.user, state, queue)
+    for queue in queues:
+        notifications += b.get_notifications(queue)
+
+        for pattern, replacement in rename:
+            if pattern in queue:
+                b.move_queue(queue, queue.replace(pattern, replacement))
     
     notifications = sorted(notifications, key=lambda n: n.timestamp)
 
@@ -30,44 +37,46 @@ def list(request,
     context.update(extra_context or {})
     return shortcuts.render(request, template_name, context)
 
-def json(request, limit=15,
+def dropdown_ajax(request, dropdowns=None, states=None, counter_states=None, 
+    rename=None, limit=15, 
     template_name='subscription/examples/yourlabs/dropdown.html'):
+
     if not request.user.is_authenticated():
         return http.HttpResponseForbidden()
 
-    b = subscription.get_backends()['redis']()
-    
-    queues = {}
-    for queue in NOTIFICATION_QUEUES:
-        new = b.count_notifications(request.user, queue=queue)
-        new += b.count_notifications(request.user, NOTIFICATION_STATES[1], 
-            queue)
-
-        queues[queue] = {
-            'count': new,
+    context = {}
+    for dropdown in dropdowns:
+        context[dropdown] = {
+            'counter': 0,
         }
+        notifications = []
 
-        if new:
-            notifications = []
-            for state in NOTIFICATION_STATES:
-                notifications += b.get_notifications(request.user, state=state,
-                    queue=queue, limit=limit-len(notifications))
+        for state in counter_states:
+            q = 'dropdown=%s,user=%s,%s' % (dropdown, request.user.pk, state)
+            context[dropdown]['counter'] += b.count_notifications(q)
 
-            print notifications
-            queues[queue]['dropdown'] = template.loader.render_to_string(
-                template_name, {
-                    'notifications': notifications,
-                    'request': request,
-                })
-            
-            b.push_state(request.user, queue=queue)
-        
-    return http.HttpResponse(simplejson.dumps(queues))
+        for state in states:
+            q = 'dropdown=%s,user=%s,%s' % (dropdown, request.user.pk, state)
+            notifications += b.get_notifications(queue=q, 
+                limit=limit-len(notifications))
 
-def push(request):
-    queue = request.GET['queue']
+            for pattern, replacement in rename:
+                if pattern in q:
+                    b.move_queue(q, q.replace(pattern, replacement))
 
-    b = subscription.get_backends()['redis']()
-    b.push_state(request.user, NOTIFICATION_STATES[1], queue)
+        context[dropdown]['html'] = template.loader.render_to_string(
+        template_name, {
+            'notifications': notifications,
+            'request': request,
+        })
+
+    return http.HttpResponse(simplejson.dumps(context))
+
+def dropdown_open(request, rename=None):
+    dropdown = request.GET['dropdown']
+
+    for pattern, replacement in rename:
+        q = 'dropdown=%s,user=%s,%s' % (dropdown, request.user.pk, pattern)
+        b.move_queue(q, q.replace(pattern, replacement))
     
     return http.HttpResponse('OK')

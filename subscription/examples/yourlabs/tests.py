@@ -3,8 +3,10 @@ import datetime
 from pprint import pprint
 
 from django.utils import unittest
+from django.contrib.auth.models import User
 
-from subscription.examples.yourlabs import backends
+from subscription.models import Subscription
+from subscription.examples.yourlabs import backends, notifications
 
 class BackendTestUtils(object):
     @classmethod
@@ -21,10 +23,12 @@ class RedisBackendTestUtils(BackendTestUtils):
                          'get_key is broken, cannot run tests safely')
         self.b = b
 
-        class UserMock(object):
-            def __init__(self, pk):
-                self.pk = pk
-        self.u = UserMock(1)
+        if not hasattr(self, 'u1'):
+            self.u1 = User.objects.get(pk=1)
+        if not hasattr(self, 'u2'):
+            self.u2 = User.objects.get(pk=2)
+        if not hasattr(self, 'u3'):
+            self.u3 = User.objects.get(pk=3)
 
         self.maxDiff = None
 
@@ -34,67 +38,81 @@ class RedisBackendTestUtils(BackendTestUtils):
         for key in b.redis.keys('test*'):
             b.redis.delete(key)
 
-    def assertStateQueueLengthEqual(self, expected, state, queue='default'):
+    def assertStateQueueLengthEqual(self, user, expected, state, queue='default'):
         result = self.b.redis.lrange(
             self.b.get_key(self.u, state, queue), 0, -1)
         self.assertEqual(expected, len(result))
 
 class FacebookStory(object):
-    def test_000_notification_list_page(self):
-        """
-        This tests the backend method get_all_notifications, used to make a
-        page like facebook.com/notifications which displays a list of all
-        notifications, and pushes them to the third state (above undelivered
-        and unacknowledged which your states should look like)
-        """
-        self.b.user_emit(self.u, 'x follows you', {}, {'timestamp': 1}, 
-            'friends')
-        self.b.user_emit(self.u, 'x commented on your status update', {}, 
-            {'timestamp': 2}, 'chat')
-        self.b.user_emit(self.u, 'y follows you', {}, {'timestamp': 3}, 
-            'friends')
+    @classmethod
+    def setUpClass(cls):
+        u1, created = User.objects.get_or_create(username='user1', pk=1)
+        u2, created = User.objects.get_or_create(username='user2', pk=2)
+        u3, created = User.objects.get_or_create(username='user3', pk=3)
 
-        result = self.b.get_all_notifications(self.u, 
-            # this keyword argument must be set if setting
-            # SUBSCRIPTION_NOTIFICATION_QUEUES does not match the default
-            # queues you want the backend to work on. Otherwise, this kwarg
-            # is not required.
-            queues=['chat', 'friends'])
+        Subscription.objects.subscribe(u1, u2)
 
-        expected = [
-            {
-                'datetime': datetime.datetime(1969, 12, 31, 18, 0, 1),
-                'initial_state': 'undelivered',
-                'queue': 'friends',
-                'text': u'x follows you',
-                'timestamp': 1
-            },
-            {
-                'datetime': datetime.datetime(1969, 12, 31, 18, 0, 2),
-                'initial_state': 'undelivered',
-                'queue': 'chat',
-                'text': u'x commented on your status update',
-                'timestamp': 2
-            },
-            {
-                'datetime': datetime.datetime(1969, 12, 31, 18, 0, 3),
-                'initial_state': 'undelivered',
-                'queue': 'friends',
-                'text': u'y follows you',
-                'timestamp': 3
-            }
-        ]
-        
-        self.assertEqual(expected, result)
+    def test_000_text_notification(self):
+        self.b.emit(notifications.TextNotification(
+                text=u'%(follower)s follows %(followed)s',
+                follower=self.u2, followed=self.u3
+            ),
+            queues=[
+                ['feed_' + u.id for u in Subscription.objects.subscribers_of(self.u2)],
+                ['user_detail_activities_tab_' + u.id for u in (self.u2, self.u3)]
+                'all_site_activities',
+            ],
+        )
 
-        # the default behaviour of get_all_notifications is to push each
-        # notification to the third state. Let's see if that works:
-        self.assertStateQueueLengthEqual(0, 'undelivered', 'chat')
-        self.assertStateQueueLengthEqual(0, 'undelivered', 'friends')
+        result = self.b.get_notifications(self.u1, 'undelivered', 'friends')
+        self.assertEqual(1, len(result))
+        self.assertEqual(
+            '<a href="/users/user2/">user2</a> follows <a href="/users/user3/">user3</a>',
+            result[0].display()
+        )
+
+        result = self.b.get_notifications(self.u2, 'undelivered', 'friends')
+        self.assertEqual(1, len(result))
+        self.assertEqual(
+            'you follows <a href="/users/user3/">user3</a>',
+            result[0].display()
+        )
+
+        result = self.b.get_notifications(self.u3, 'undelivered', 'friends')
+        self.assertEqual(1, len(result))
+        self.assertEqual(
+            '<a href="/users/user2/">user2</a> follows you',
+            result[0].display()
+        )
+
+        return
+
+    def test_001_lazy_text_notification(self):
+        self.b.emit(notifications.TextNotification(
+            text=u'%(poster)s commented on %(content)s',
+            poster=self.u1,
+            content=self.u2,
+        ), subscribers_of=self.u2, send_to=[self.u1], queue='friends')
+        self.u1.username = 'test_001_lazy_text_notification'
+        self.u1.save()
+
+        result = self.b.get_notifications(self.u1, 'undelivered', 'friends')
+        self.assertEqual(1, len(result))
+        self.assertEqual(
+            'you commented on <a href="/users/user2/">user2</a>',
+            result[0].display()
+        )
+        return
+
+        self.assertStateQueueLengthEqual(1, 'undelivered', 'chat')
+        self.assertStateQueueLengthEqual(1, 'undelivered', 'friends')
         self.assertStateQueueLengthEqual(0, 'unacknowledged', 'chat')
         self.assertStateQueueLengthEqual(0, 'unacknowledged', 'friends')
-        self.assertStateQueueLengthEqual(1, 'acknowledged', 'chat')
-        self.assertStateQueueLengthEqual(2, 'acknowledged', 'friends')
+        self.assertStateQueueLengthEqual(0, 'acknowledged', 'chat')
+        self.assertStateQueueLengthEqual(0, 'acknowledged', 'friends')
+
+        result = self.b.get_notifications(self, self.u1)
+        pprint(result)
 
     def test_001_live_notification(self):
         """

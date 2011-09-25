@@ -10,23 +10,41 @@
                 height: 30px;
                 background-color: #FFF000;
             }
+            .subscription div {
+                display: inline-block;
+            }
+            .subscription .hidden {
+                display: none;
+            }
+            .subscription .dropdown {
+                overflow: visible;
+                position: absolute;
+                z-index: 100;
+                width: 330px;
+                background-color: white;
+            }
+            .subscription .list .notification {
+                display: block;
+            }
         </style>
     </head>
     <body>
         <div class="header">
             {% if request.user.is_authenticated %}
-                {% yourlabs_notification_widget request %}
+                <div class="subscription">
+                    <div class="dropdown chat" id="subscription_dropdown_chat">
+                        {% subscription_yourlabs_dropdown request 'chat' 'undelivered,unacknowledged,acknowledged' 'undelivered,unacknowledged' 15 %}
+                    </div>
+                </div>
                 <div class="user">
                     <a href="{% url avatar_change %}" title="{% trans 'Change avatar' %}">
                         {% avatar request.user 32 %}
-                    </a>
+                    </a> Hello {{ request.user }}
                 </div>
             {% else %}
                 <a href="/admin/">{% trans 'Login' %}</a>
             {% endif %}
         </div>
-        
-        hello {{ request.user }}
 
         <div class="body">
             {% block body %}
@@ -38,7 +56,7 @@
         <script type="text/javascript" src="{{ STATIC_PREFIX }}subscription/jquery-implementation.js"></script>
         <script type="text/javascript">
             $(document).ready(function() {
-                Subscription.factory('{% url subscription_json %}', '{% url subscription_push %}');
+                Subscription.factory('{% url subscription_dropdown_ajax %}', '{% url subscription_dropdown_open %}');
             });
         </script>
         {% endif %}
