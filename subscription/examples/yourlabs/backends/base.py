@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from subscription.models import Subscription
 from subscription.examples.yourlabs.settings import *
-from exceptions import *
+
 
 class BaseBackend(object):
     def emit(self, notification, subscribers_of=None, dont_send_to=None, 
@@ -40,14 +40,13 @@ class BaseBackend(object):
         state=NOTIFICATION_STATES[0], queue=NOTIFICATION_QUEUES[0]):
         raise NotImplementedError()
 
-    def get_all_notifications(self, user, states=NOTIFICATION_STATES, 
-        queues=NOTIFICATION_QUEUES, order_by='timestamp', 
-        push=[NOTIFICATION_STATES[0], NOTIFICATION_STATES[1]]):
+    def get_notifications(self, user, 
+        state=NOTIFICATION_STATES[0], queue=NOTIFICATION_QUEUES[0],
+        limit=-1):
         raise NotImplementedError()
 
-    def get_last_notifications(self, user, queues=NOTIFICATION_QUEUES, 
-        queue_limit=-1, states=[NOTIFICATION_STATES[0]], reverse=False,
-        push=[NOTIFICATION_STATES[0]]):
+    def count_notifications(self, user, state=NOTIFICATION_STATES[0], 
+        queue=NOTIFICATION_QUEUES[0]):
         raise NotImplementedError()
 
     def serialize(self, user, notification):

@@ -1,0 +1,21 @@
+{% load i18n %}
+{% load subscription_yourlabs_tags %}
+
+{% if notifications|length == 0 %}
+    <div class="empty">
+        {% trans 'You have not received any notification yet' %}
+    </div>
+{% else %}
+    <div class="list">
+    {% for notification in notifications %}
+        <div class="notification {{ notification.initial_state }}" id="subscription_notification_{{ notification.timestamp }}">
+            {% yourlabs_notification_render notification 'dropdown' %}
+        </div>
+    {% endfor %}
+    </div>
+    <div class="more">
+        <a href="{% url subscription_list %}">
+            {% trans 'See all notifications' %}
+        </a>
+    </div>
+{% endif %}

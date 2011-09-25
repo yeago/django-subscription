@@ -33,7 +33,5 @@ class BaseNotification(object):
             'timestamp': self.timestamp,
         }
 
-    def get_display(self, user, backend):
+    def get_display_for(self, user, view=None):
         raise NotImplementedError()
-
-

@@ -1,9 +1,6 @@
 import base
 
 class TextNotification(base.BaseNotification):
-    def __init__(self, **kwargs):
-        super(TextNotification, self).__init__(**kwargs)
-
     def to_dict(self, user):
         data = super(TextNotification, self).to_dict(user)
 

@@ -4,7 +4,6 @@ Subscription = function(json_url, push_url, override) {
         'json_url': json_url,
         'push_url': push_url,
         'queue_limit': 10,
-        'last_data': {},
         'setup_dropdown': function() {
             $('.subscription .queue .toggler').click(function() {
                 var dropdown = $(this).parents('.queue').find('.dropdown');
@@ -15,8 +14,11 @@ Subscription = function(json_url, push_url, override) {
                     dropdown.slideDown();
 
                     var queue_name = Subscription.singleton.get_queue_name($(this));
-                    if (Subscription.singleton.last_data[queue_name]['counts']['unacknowledged'] > 0) {
-                        Subscription.singleton.display_count('unacknowledged', queue_name, '0');
+                    var counter = $('.subscription .'+queue_name+' .count.unacknowledged');
+                    var count = parseInt(counter.html());
+
+                    if (counter > 0) {
+                        counter.html(0);
                         $.get(Subscription.singleton.push_url, {
                             'queue': queue_name,
                         });
@@ -34,40 +36,24 @@ Subscription = function(json_url, push_url, override) {
                 }
             });
         },
-        'display_count': function(state, queue, count) {
-            $('.subscription .'+queue+' .count.'+state).html(count);
-            if (state == 'acknowledged' && count > 0) {
-                $('.subscription .queue.'+queue+' .more').show();
-            }
-        },
-        'display_notification': function(queue, notification) {
-            $('.subscription .'+queue+' .list').prepend(
-                '<div class="notification '+notification.timestamp+' '+notification.state+'">'+notification.text+'</div>'
-            );
-            if ($('.subscription .'+queue+' .list .notification').length > Subscription.singleton.queue_limit) {
-                $('.subscription .'+queue+' .list .notification:last').remove();
+        'display': function(queues) {
+            var queue, notification;
+            console.log(queues)
+
+            for(var queue_name in queues) {
+                queue = queues[queue_name];
+                
+                $('.subscription .queue.'+queue_name+' .count.unacknowledged').html(queue['count']);
+
+                if (queue['dropdown'] !== undefined) {
+                    $('.subscription .queue.'+queue_name+' .dropdown').html(queue['dropdown']);
+                }
             }
         },
         'refresh': function() {
             var json_url = Subscription.singleton.json_url + '?x=' + Math.round(new Date().getTime());
-            $.getJSON(json_url, function(data, text_status, jq_xhr) {
-                var queue, notification;
-
-                Subscription.singleton.last_data = data;
-
-                for(var queue_name in data) {
-                    queue = data[queue_name];
-                    
-                    for (var state_name in queue['counts']) {
-                        Subscription.singleton.display_count(state_name, queue_name, queue['counts'][state_name]);
-                    }
-
-                    for (var notification_key in queue['notifications']) {
-                        notification = queue['notifications'][notification_key];
-                        Subscription.singleton.display_notification(queue_name, notification);
-                    }
-                }
-                return true;
+            $.getJSON(json_url, function(queues, text_status, jq_xhr) {
+                Subscription.singleton.display(queues);
             }).fail(Subscription.singleton.set_timeout)
               .done(Subscription.singleton.set_timeout);
         },

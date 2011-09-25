@@ -12,8 +12,9 @@
     </head>
     <body>
         <div class="header">
-            {% subscription_yourlabs_widget request %}
-            
+            {% if request.user.is_authenticated %}
+                {% yourlabs_notification_widget request %}
+            {% endif %}
         </div>
         
         hello {{ request.user }}
@@ -23,12 +24,14 @@
             {% endblock %}
         </div>
 
-        <script type="text/javascript" src="{{ STATIC_PREFIX }}admin/js/jquery.min.js"></script>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+        {% if request.user.is_authenticated %}
         <script type="text/javascript" src="{{ STATIC_PREFIX }}subscription/jquery-implementation.js"></script>
         <script type="text/javascript">
             $(document).ready(function() {
                 Subscription.factory('{% url subscription_json %}', '{% url subscription_push %}');
             });
         </script>
+        {% endif %}
     </body>
 </html>

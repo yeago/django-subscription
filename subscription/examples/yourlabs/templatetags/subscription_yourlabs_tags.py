@@ -5,17 +5,29 @@ from subscription.examples.yourlabs.settings import *
 
 register = template.Library()
 
-def subscription_yourlabs_widget(request, queue_limit=15):
+@register.inclusion_tag('subscription/examples/yourlabs/widget.html')
+def yourlabs_notification_widget(request, limit=15):
     if not request.user.is_authenticated():
         return {}
 
     b = subscription.get_backends()['redis']()
-    notification_list = b.get_last_notifications(request.user, 
-        states=NOTIFICATION_STATES, queue_limit=queue_limit)
 
-    return {
-        'notification_list': notification_list,
-        'queue_limit': queue_limit,
-    }
+    queues = {}
+    for queue in NOTIFICATION_QUEUES:
+        queues[queue] = {
+            'notifications': [],
+            'counts': {},
+        }
+        for state in reversed(NOTIFICATION_STATES):
+            queues[queue]['notifications'] += b.get_notifications(request.user, 
+                state, queue, limit=limit-len(queues[queue]['notifications']))
+            queues[queue]['counts'][state] = b.count_notifications(
+                request.user, state, queue)
 
-register.inclusion_tag('subscription/examples/yourlabs/widget.html')(subscription_yourlabs_widget)
+    print queues['chat']['notifications']
+
+    return {'queues': queues, 'request': request}
+
+@register.simple_tag(takes_context=True)
+def yourlabs_notification_render(context, notification, view):
+    return notification.get_display(context['request'].user, view)

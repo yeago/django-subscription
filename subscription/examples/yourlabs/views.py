@@ -1,5 +1,6 @@
 import datetime
 
+from django import template
 from django import shortcuts
 from django import http
 from django.utils import simplejson
@@ -12,25 +13,56 @@ def list(request,
     extra_context=None):
 
     b = subscription.get_backends()['redis']()
-    notification_list = b.get_all_notifications(request.user)
+
+    notifications = []
+    for queue in NOTIFICATION_QUEUES:
+        for state in NOTIFICATION_STATES:
+            notifications += b.get_notifications(request.user, state, queue)
+            b.push_state(request.user, state, queue)
+    
+    notifications = sorted(notifications, key=lambda n: n.timestamp)
 
     context = {
-        'notification_list': notification_list,
+        'notification_list': notifications,
         'today': datetime.date.today()
     }
 
     context.update(extra_context or {})
     return shortcuts.render(request, template_name, context)
 
-def json(request, queue_limit=15):
+def json(request, limit=15,
+    template_name='subscription/examples/yourlabs/dropdown.html'):
     if not request.user.is_authenticated():
         return http.HttpResponseForbidden()
 
     b = subscription.get_backends()['redis']()
-    notification_list = b.get_last_notifications(request.user, 
-        queue_limit=queue_limit, minimal=True, reverse=True)
+    
+    queues = {}
+    for queue in NOTIFICATION_QUEUES:
+        new = b.count_notifications(request.user, queue=queue)
+        new += b.count_notifications(request.user, NOTIFICATION_STATES[1], 
+            queue)
 
-    return http.HttpResponse(simplejson.dumps(notification_list))
+        queues[queue] = {
+            'count': new,
+        }
+
+        if new:
+            notifications = []
+            for state in NOTIFICATION_STATES:
+                notifications += b.get_notifications(request.user, state=state,
+                    queue=queue, limit=limit-len(notifications))
+
+            print notifications
+            queues[queue]['dropdown'] = template.loader.render_to_string(
+                template_name, {
+                    'notifications': notifications,
+                    'request': request,
+                })
+            
+            b.push_state(request.user, queue=queue)
+        
+    return http.HttpResponse(simplejson.dumps(queues))
 
 def push(request):
     queue = request.GET['queue']

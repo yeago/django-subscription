@@ -1,5 +1,6 @@
-{% extends 'site_base.html' %}
+{% extends 'subscription/examples/yourlabs/base.html' %}
 
+{% load subscription_yourlabs_tags %}
 {% load i18n %}
 
 {% block body %}
@@ -19,7 +20,8 @@
         {% endifchanged %}
 
         <li>
-            {{ notification.text|safe }}
+            hi!
+            {% yourlabs_notification_render notification 'list' %}
         </li>
 
         {% if forloop.last %}

@@ -1,0 +1,42 @@
+{% load i18n %}
+{% load subscription_yourlabs_tags %}
+
+<style type="text/css">
+.subscription div {
+    display: inline-block;
+}
+.subscription .hidden {
+    display: none;
+}
+.subscription .dropdown {
+    overflow: visible;
+    position: absolute;
+    z-index: 100;
+    width: 330px;
+    background-color: white;
+}
+.subscription .list .notification {
+    display: block;
+}
+</style>
+
+<div class="subscription widgets">
+{% for queue_name, queue in queues.items %}
+    
+    <div class="queue {{ queue_name }}" id="subscription_queue_{{ queue_name }}">
+        <div class="toggler">
+            <!-- hide this with css when you got your images up -->
+            {{ queue_name }}:
+            <div class="count unacknowledged">
+                {{ queue.counts.unacknowledged }}
+            </div>
+        </div>
+        <div class="dropdown hidden">
+            {% with notifications=queue.notifications counts=queue.counts %}
+                {% include 'subscription/examples/yourlabs/dropdown.html' %}
+            {% endwith %}
+        </div>
+    </div>
+{% endfor %}
+</div>
+
