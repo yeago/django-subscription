@@ -1,4 +1,6 @@
+{% load i18n %}
 {% load subscription_yourlabs_tags %}
+{% load avatar_tags %}
 {% load static %}
 {% get_static_prefix as STATIC_PREFIX %}
 <html>
@@ -14,6 +16,13 @@
         <div class="header">
             {% if request.user.is_authenticated %}
                 {% yourlabs_notification_widget request %}
+                <div class="user">
+                    <a href="{% url avatar_change %}" title="{% trans 'Change avatar' %}">
+                        {% avatar request.user 32 %}
+                    </a>
+                </div>
+            {% else %}
+                <a href="/admin/">{% trans 'Login' %}</a>
             {% endif %}
         </div>
         

@@ -77,6 +77,7 @@ INSTALLED_APPS = (
     'django.contrib.comments',
     'subscription',
     'subscription.examples.yourlabs',
+    'avatar',
 )
 
 SUBSCRIPTION_BACKENDS = {
