@@ -11,7 +11,7 @@ import base
 from subscription.examples.yourlabs.settings import *
 
 class RedisBackend(base.BaseBackend):
-    def __init__(self, prefix='subscription'):
+    def __init__(self, prefix='subscription:'):
         self.prefix = prefix
 
     @property
@@ -21,9 +21,12 @@ class RedisBackend(base.BaseBackend):
         return self._redis
 
     def queue(self, notification, queue):
-        self.redis.lpush(queue, pickle.dumps(notification))
+        self.redis.lpush(self.prefix + queue, pickle.dumps(notification))
 
     def move_queue(self, source, destination):
+        source = self.prefix + source
+        destination = self.prefix + destination
+
         notifications = self.redis.lrange(source, 0, -1)
 
         for notification in notifications:
@@ -31,6 +34,8 @@ class RedisBackend(base.BaseBackend):
             self.redis.lrem(source, notification)
 
     def get_notifications(self, queue, limit=-1):
+        queue = self.prefix + queue
+
         if limit > 0:
             queue_limit = limit - 1
         elif limit == 0:
@@ -41,4 +46,5 @@ class RedisBackend(base.BaseBackend):
         return [pickle.loads(n) for n in self.redis.lrange(queue, 0, queue_limit)]
 
     def count_notifications(self, queue):
+        queue = self.prefix + queue
         return self.redis.llen(queue)

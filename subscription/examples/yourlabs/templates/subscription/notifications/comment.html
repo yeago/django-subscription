@@ -1,0 +1,13 @@
+{% load i18n %}
+
+{% if viewer == poster %}
+    {% trans 'You' %} {% trans 'commented on' %}
+{% else %}
+    <a href="{{ poster.get_absolute_url }}">{{ poster }}</a> {% trans 'commented on' %}
+{% endif %}
+
+{% if viewer == content %}
+    {% trans 'you' %}
+{% else %}
+    <a href="{{ content.get_absolute_url }}">{{ content }}</a>
+{% endif %}
