@@ -31,7 +31,7 @@ Subscription = function(json_url, push_url, override) {
             });
             $(document).mouseup(function() {
                 if (!Subscription.singleton.mouse_inside) {
-                    $('.subscription .dropdown:visible').slideUp();
+                    $('.subscription .dropdown.inner:visible').slideUp();
                 }
             });
         },

@@ -21,7 +21,7 @@
     {% endfor %}
     </div>
     <div class="more">
-        <a href="{% url subscription_list %}">
+        <a href="{% url subscription_dropdown_more %}?{% for q in queues %}&q={{ q|urlencode }}{% endfor %}">
             {% trans 'See all notifications' %}
         </a>
     </div>

@@ -13,8 +13,10 @@ def subscription_yourlabs_dropdown(request, dropdown, states, count, limit=15):
     b = subscription.get_backends()['storage']()
 
     notifications = []
+    queues = []
     for state in states.split(','):
         q = 'dropdown=%s,user=%s,%s' % (dropdown, request.user.pk, state)
+        queues.append(q)
         notifications += b.get_notifications(q, limit-len(notifications))
 
     counter = 0
@@ -27,6 +29,7 @@ def subscription_yourlabs_dropdown(request, dropdown, states, count, limit=15):
         'counter': counter,
         'dropdown': dropdown,
         'request': request,
+        'queues': queues,
     }
 
 @register.simple_tag(takes_context=True)

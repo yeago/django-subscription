@@ -12,7 +12,6 @@ class BaseBackend(object):
         if queues is None:
             if hasattr(notification, 'queues'):
                 queues = notification.queues
-
         for queue in queues:
             self.queue(notification, queue)
 

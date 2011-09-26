@@ -8,14 +8,14 @@ from django.utils import simplejson
 import subscription
 from subscription.examples.yourlabs.settings import *
 
-def list(request, push_states=None, backend='storage',
+def dropdown_more(request, push_states=None, backend='storage',
     template_name='subscription/examples/yourlabs/list.html', 
     extra_context=None):
     
     if push_states is None:
         push_states = {}
 
-    queues = request.GET.get('queues', 'default').split(';')
+    queues = request.GET.getlist('q')
 
     b = subscription.get_backends()[backend]()
 
@@ -46,28 +46,31 @@ def dropdown_ajax(request, dropdowns=None, states=None, counter_state=None,
     b = subscription.get_backends()[backend]()
 
     context = {}
-    for dropdown in dropdowns:  
+    for dropdown in dropdowns:
+        for old_state, new_state in push_states.items():
+            q = 'dropdown=%s,user=%s,%s' % (dropdown, request.user.pk, old_state)
+            b.move_queue(q, q.replace(old_state, new_state))
+
         q = 'dropdown=%s,user=%s,%s' % (dropdown, request.user.pk, counter_state)
         count = b.count_notifications(q)
         if count == 0:
             continue
 
-        for old_state, new_state in push_states.items():
-            q = 'dropdown=%s,user=%s,%s' % (dropdown, request.user.pk, old_state)
-            b.move_queue(q, q.replace(old_state, new_state))
-
         notifications = []
+        queues = []
         for state in states:
             q = 'dropdown=%s,user=%s,%s' % (dropdown, request.user.pk, state)
             notifications += b.get_notifications(queue=q, 
                 limit=limit-len(notifications))
+            queues.append(q)
 
         context[dropdown] = template.loader.render_to_string(
         template_name, {
             'notifications': notifications,
-            'request': request,
-            'dropdown': dropdown,
             'counter': count,
+            'dropdown': dropdown,
+            'request': request,
+            'queues': queues,
         })
 
     return http.HttpResponse(simplejson.dumps(context), mimetype='application/javascript')

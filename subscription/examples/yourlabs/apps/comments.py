@@ -9,10 +9,14 @@ from subscription.models import Subscription
 import subscription
 
 class CommentNotification(notifications.TextNotification):
-    def __init__(self, comment):
-        self.text = '%(poster)s commented on %(content)s'
-        self.content = notifications.Lazy(comment.content_object)
-        self.poster = notifications.Lazy(comment.user)
+    @classmethod
+    def factory(cls, comment):
+        return cls(
+            text='%(poster)s commented on %(content)s',
+            content=notifications.Lazy(comment.content_object),
+            poster=notifications.Lazy(comment.user),
+            sent_at=comment.submit_date
+        )
 
     @property
     def queues(self):
@@ -42,5 +46,5 @@ def comments_subscription(sender, **kwargs):
 
     if comment.user:
         Subscription.objects.subscribe(comment.user, comment.content_object)
-        CommentNotification(comment).emit()
+        CommentNotification.factory(comment).emit()
 comment_was_posted.connect(comments_subscription)

@@ -9,8 +9,12 @@ import subscription
 
 class BaseNotification(object):
     def emit(self, queues=None):
-        if queues is None and hasattr(self, 'queues'):
+        local_queues = getattr(self, 'queues', None)
+        if queues is None and local_queues:
             queues = self.queues
+
+        if not queues:
+            raise Exception('What queue should i emit to ?')
 
         for backend_module in subscription.get_backends().values():
             backend_module().emit(self, queues)
