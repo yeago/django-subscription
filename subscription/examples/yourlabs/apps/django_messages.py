@@ -1,20 +1,28 @@
 from django.db.models import signals
+from django.db.models import get_model
 
-from django_messages.models import Message
+from subscription.examples.yourlabs import shortcuts
+from subscription.examples.yourlabs.notification import Notification, Lazy
 
-def auto_message_notification(sender, **kwargs):
+"""
+Example usage: 
+
+from subscription.examples.yourlabs.apps import django_messages
+django_messages.signals.post_save.connect(django_messages.message_notification,
+    sender=django_messages.Message)
+"""
+
+Message = get_model('django_messages', 'message')
+
+def message_notification(sender, instance=None, **kwargs):
     if not kwargs.get('created', False):
         return
-    emit_new_message(kwargs['instance'])
-signals.post_save.connect(auto_message_notification, sender=Message)
 
-def emit_new_message(message):
-    Subscription.objects.emit(
-        u'%(actor_display)s sent you a %(target)s',
-        send_only_to=[message.recipient],
-        context={
-            'message': message,
-            'actor': message.sender,
-        },
-        queue='chat',
-    )
+    Notification(
+        actor=Lazy(instance.sender),
+        recipient=Lazy(instance.recipient),
+        message=instance, # user can't edit a message, no need to lazy it
+        queues=['dropdown=messages,user=%s,undelivered' % instance.recipient.pk],
+        template='message',
+        lazy=True,
+    ).emit()

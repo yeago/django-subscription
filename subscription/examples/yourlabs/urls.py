@@ -2,7 +2,7 @@ from django.conf.urls.defaults import *
 
 urlpatterns = patterns('subscription.examples.yourlabs.views',
     url(r'^dropdown/ajax/$', 'dropdown_ajax', {
-        'dropdowns': ['chat', 'friends'],
+        'dropdowns': ['other', 'friends', 'messages'],
         'states': ['undelivered', 'unacknowledged', 'acknowledged'],
         'push_states': {
             'undelivered': 'unacknowledged',

@@ -33,7 +33,7 @@ class CommentNotification(Notification):
     def queues(self):
         queues = []
         for subscriber in self.subscribers:
-            queues.append('dropdown=chat,user=%s,undelivered' % subscriber.pk)
+            queues.append('dropdown=other,user=%s,undelivered' % subscriber.pk)
         return queues
 
     @property

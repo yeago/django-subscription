@@ -60,7 +60,10 @@ class Notification(object):
                 del self.rendered
         else:
             self.rendered = self.display()
-        
+
+        if not getattr(self, 'sent_at', False):
+            self.sent_at = datetime.datetime.now()
+
         return self.__dict__
 
     @property
