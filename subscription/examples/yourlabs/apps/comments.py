@@ -1,6 +1,6 @@
 from django.db.models import Q
 from django.contrib.comments.models import Comment
-from django.contrib.comments.signals import comment_was_posted
+from django.contrib.comments import signals
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 
@@ -10,12 +10,21 @@ from subscription.models import Subscription
 from subscription.examples.yourlabs import shortcuts
 from subscription.examples.yourlabs.notification import Notification, Lazy
 
+"""
+Example usage:
+
+from subscription.examples.yourlabs.apps import comments
+comments.signals.comment_was_posted.connect(comments.comments_subscription)
+comments.signals.comment_was_posted.connect(
+    comments.comment_lazy_template_notification)
+"""
+
 class CommentNotification(Notification):
     @classmethod
     def kwargs_factory(cls, comment, **kwargs):
         kwargs.update(
             content=comment.content_object,
-            poster=comment.user,
+            actor=comment.user,
             sent_at=comment.submit_date,
         )
         return kwargs
@@ -30,7 +39,7 @@ class CommentNotification(Notification):
     @property
     def subscribers(self):
         content_ct = ContentType.objects.get_for_model(self.content)
-        poster_ct = ContentType.objects.get_for_model(self.poster)
+        actor_ct = ContentType.objects.get_for_model(self.actor)
 
         return User.objects.filter(
             Q(
@@ -38,10 +47,10 @@ class CommentNotification(Notification):
                 subscription__object_id=self.content.pk
             ) |
             Q(
-                subscription__content_type=poster_ct,
-                subscription__object_id=self.poster.pk
+                subscription__content_type=actor_ct,
+                subscription__object_id=self.actor.pk
             )
-        ).exclude(pk=self.poster.pk).distinct()
+        ).exclude(pk=self.actor.pk).distinct()
 
 def comments_subscription(sender, comment=None, **kwargs):
     if comment.user:
@@ -52,25 +61,22 @@ def comment_lazy_text_notification(sender, comment=None, **kwargs):
     if comment.user:
         shortcuts.emit_lazy(CommentNotification,
             comment=comment,
-            text='%(poster)s commented on %(content)s')
+            text='%(actor)s commented on %(content)s')
 
-def comment_lazy_template_notification(sender, **kwargs):
-    comment = kwargs.pop('comment')
+def comment_lazy_template_notification(sender, comment=None, **kwargs):
     if comment.user:
         shortcuts.emit_lazy(CommentNotification,
             comment=comment,
-            template='new_comment').emit()
+            template='comment')
 
-def comment_static_text_notification(sender, **kwargs):
-    comment = kwargs.pop('comment')
+def comment_static_text_notification(sender, comment=None, **kwargs):
     if comment.user:
         shortcuts.emit_static(CommentNotification,
             comment=comment,
-            text='%(poster)s commented on %(content)s').emit()
+            text='%(actor)s commented on %(content)s').emit()
 
-def comment_static_template_notification(sender, **kwargs):
-    comment = kwargs.pop('comment')
+def comment_static_template_notification(sender, comment=None, **kwargs):
     if comment.user:
         shortcuts.emit_static(CommentNotification,
             comment=comment,
-            template='new_comment').emit()
+            template='comment')

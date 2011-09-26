@@ -1,13 +1,22 @@
+{% extends 'subscription/notifications/base.html' %}
+
 {% load i18n %}
 
-{% if viewer == poster %}
-    {% trans 'You' %} {% trans 'commented on' %}
-{% else %}
-    <a href="{{ poster.get_absolute_url }}">{{ poster }}</a> {% trans 'commented on' %}
-{% endif %}
+{% block story %}
+    {% if viewer == actor %}
+        {% trans 'You' %}
+    {% else %}
+        <a href="{{ actor.get_absolute_url }}">{{ actor }}</a>
+    {% endif %}
 
-{% if viewer == content %}
-    {% trans 'you' %}
-{% else %}
-    <a href="{{ content.get_absolute_url }}">{{ content }}</a>
-{% endif %}
+    {% if content.username %}
+        {% if viewer == content %}
+            {% trans 'posted on your wall' %}
+        {% else %}
+            {% blocktrans with url=content.get_absolute_url %}posted on <a href="{{ url }}">{{ content }}</a>'s wall{% endblocktrans %}
+        {% endif %}
+    {% else %}
+        {% trans 'commented on' %}
+        <a href="{{ content.get_absolute_url }}">{{ content }}</a>
+    {% endif %}
+{% endblock %}

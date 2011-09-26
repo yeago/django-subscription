@@ -1,3 +1,5 @@
+import datetime
+
 from subscription.examples.yourlabs.notification import Lazy
 
 def emit_lazy(cls, **kwargs):
@@ -11,6 +13,9 @@ def emit_lazy(cls, **kwargs):
 
     notification = cls(**kwargs)
 
+    if not getattr(notification, 'sent_at', False):
+        notification.sent_at = datetime.datetime.now()
+
     notification.emit()
     return notification
 
@@ -21,5 +26,9 @@ def emit_static(cls, **kwargs):
         kwargs = cls.kwargs_factory(**kwargs)
     
     notification = cls(**kwargs)
+
+    if not getattr(notification, 'sent_at', False):
+        notification.sent_at = datetime.datetime.now()
+
     notification.emit()
     return notification

@@ -40,8 +40,8 @@ Subscription = function(json_url, push_url, override) {
             for(var dropdown_name in dropdowns) {
                 var wrapper = $('#subscription_dropdown_' + dropdown_name);
                 wrapper.html(dropdowns[dropdown_name]);
-                Subscription.singleton.update_counts();
             }
+            Subscription.singleton.update_counts();
         },
         'refresh': function() {
             var data = {
@@ -71,7 +71,6 @@ Subscription = function(json_url, push_url, override) {
             $('.subscription .dropdown.outer').each(function() {
                 var s = Subscription.singleton;
                 var c = parseInt($(this).find('.counter').html());
-
                 s.counts[s.get_dropdown_name($(this))] = c;
             });
         },

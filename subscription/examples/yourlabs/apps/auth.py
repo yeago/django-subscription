@@ -3,7 +3,15 @@ from django.contrib.auth.models import User
 
 from subscription.models import Subscription
 
-def auto_subscribe_user_to_himself(sender, **kwargs):
+"""
+Example usage:
+
+from subscription.examples.yourlabs.apps import auth
+auth.signals.post_save.connect(auth.subscribe_user_to_himself, sender=auth.User)
+auth.subscribe_existing_users_to_themselves()
+"""
+
+def subscribe_user_to_himself(sender, **kwargs):
     user = kwargs.pop('instance')
     Subscription.objects.subscribe(user, user)
 

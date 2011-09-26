@@ -53,6 +53,7 @@ def dropdown_ajax(request, dropdowns=None, states=None, counter_state=None,
 
     context = {}
     for dropdown in dropdowns:
+        # would be better to do that after the count <= remote_counts check ..
         for old_state, new_state in push_states.items():
             q = 'dropdown=%s,user=%s,%s' % (dropdown, request.user.pk, old_state)
             b.move_queue(q, q.replace(old_state, new_state))

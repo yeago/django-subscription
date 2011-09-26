@@ -1,0 +1,17 @@
+{% extends 'subscription/notifications/base.html' %}
+
+{% load i18n %}
+
+{% block story %}
+    {% if viewer == actor %}
+        {% trans 'You' %} {% trans 'follow' %}
+    {% else %}
+        <a href="{{ actor.get_absolute_url }}">{{ actor }}</a> {% trans 'follows' %}
+    {% endif %}
+
+    {% if viewer == content %}
+        {% trans 'you' %}
+    {% else %}
+        <a href="{{ content.get_absolute_url }}">{{ content }}</a>
+    {% endif %}
+{% endblock %}

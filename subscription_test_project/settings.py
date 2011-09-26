@@ -84,11 +84,6 @@ SUBSCRIPTION_BACKENDS = {
     'storage': 'subscription.examples.yourlabs.backends.RedisBackend',
 }
 
-SUBSCRIPTION_NOTIFICATION_QUEUES = [
-    'chat',
-    'friends',
-]
-
 #LOGGING = {
 #    'version': 1,
 #    'formaters': {
