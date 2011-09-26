@@ -43,6 +43,12 @@ def dropdown_ajax(request, dropdowns=None, states=None, counter_state=None,
     if not request.user.is_authenticated():
         return http.HttpResponseForbidden()
 
+    remote_counts = {}
+    for k, v in request.GET.items():
+        if k == 'x':
+            continue
+        remote_counts[k] = int(v)
+
     b = subscription.get_backends()[backend]()
 
     context = {}
@@ -53,7 +59,7 @@ def dropdown_ajax(request, dropdowns=None, states=None, counter_state=None,
 
         q = 'dropdown=%s,user=%s,%s' % (dropdown, request.user.pk, counter_state)
         count = b.count_notifications(q)
-        if count == 0:
+        if count <= remote_counts[dropdown]:
             continue
 
         notifications = []

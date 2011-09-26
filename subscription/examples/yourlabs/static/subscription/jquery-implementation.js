@@ -3,7 +3,7 @@ Subscription = function(json_url, push_url, override) {
         'delay': 7000,
         'json_url': json_url,
         'push_url': push_url,
-        'queue_limit': 10,
+        'counts': {},
         'setup_dropdown': function() {
             $('.subscription .toggler').live('click', function() {
                 var dropdown = $(this).parent().find('.dropdown.inner');
@@ -34,20 +34,27 @@ Subscription = function(json_url, push_url, override) {
                     $('.subscription .dropdown.inner:visible').slideUp();
                 }
             });
+            Subscription.singleton.update_counts();
         },
         'display': function(dropdowns) {
-            console.log(dropdowns)
-
             for(var dropdown_name in dropdowns) {
                 var wrapper = $('#subscription_dropdown_' + dropdown_name);
-                console.log(wrapper, dropdowns[dropdown_name])
                 wrapper.html(dropdowns[dropdown_name]);
+                Subscription.singleton.update_counts();
             }
         },
         'refresh': function() {
-            var json_url = Subscription.singleton.json_url + '?x=' + Math.round(new Date().getTime());
-            $.getJSON(json_url, function(dropdowns, text_status, jq_xhr) {
-                Subscription.singleton.display(dropdowns);
+            var data = {
+                /* stupid browser cache workaround */
+                'x': Math.round(new Date().getTime()),
+            }
+            for (var dropdown_name in Subscription.singleton.counts) {
+                data[dropdown_name] = Subscription.singleton.counts[dropdown_name];
+           }
+
+            $.getJSON(Subscription.singleton.json_url, data,
+                function(dropdowns, text_status, jq_xhr) {
+                    Subscription.singleton.display(dropdowns);
             }).fail(Subscription.singleton.set_timeout)
               .done(Subscription.singleton.set_timeout);
         },
@@ -60,7 +67,14 @@ Subscription = function(json_url, push_url, override) {
             var dropdown_el = el.is('.dropdown') ? el : el.parents('.dropdown');
             return dropdown_el.attr('id').match(/subscription_dropdown_(.+)$/)[1];
         },
+        'update_counts': function() {
+            $('.subscription .dropdown.outer').each(function() {
+                var s = Subscription.singleton;
+                var c = parseInt($(this).find('.counter').html());
 
+                s.counts[s.get_dropdown_name($(this))] = c;
+            });
+        },
     }, override);
 
     return instance

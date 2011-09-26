@@ -32,7 +32,10 @@
         <div class="header">
             {% if request.user.is_authenticated %}
                 <div class="subscription">
-                    <div class="dropdown chat" id="subscription_dropdown_chat">
+                    <div class="dropdown outer friends" id="subscription_dropdown_friends">
+                        {% subscription_yourlabs_dropdown request 'friends' 'undelivered,unacknowledged,acknowledged' 'undelivered,unacknowledged' 15 %}
+                    </div>
+                    <div class="dropdown outer chat" id="subscription_dropdown_chat">
                         {% subscription_yourlabs_dropdown request 'chat' 'undelivered,unacknowledged,acknowledged' 'undelivered,unacknowledged' 15 %}
                     </div>
                 </div>
