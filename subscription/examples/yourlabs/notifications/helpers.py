@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.db.models import Model
 from django.contrib.contenttypes.models import ContentType
 
@@ -12,12 +13,15 @@ class Variable(object):
         self.value = state
 
 class Lazy(Variable):
+    def __init__(self, value):
+        self.value = value
+    
     def __getstate__(self):
         if isinstance(self.value, Model):
-            key = ContentType.objects.get_for_model(self.value).natural_key()
+            natural_key = ContentType.objects.get_for_model(self.value).natural_key()
             return (
                 'model',
-                key,
+                natural_key,
                 self.value.pk
             )
         else:
@@ -25,8 +29,14 @@ class Lazy(Variable):
 
     def __setstate__(self, state):
         if isinstance(state, tuple) and state[0] == 'model':
-            model_class = ContentType.objects.get_by_natural_key(
-                state[1][0], state[1][1]).model_class()
-            self.value = model_class.objects.get(pk=state[2])
+            cache_key = 'model%s%s' % (''.join(state[1]), state[2])
+            value = cache.get(cache_key)
+            if value is None:
+                model_class = ContentType.objects.get_by_natural_key(
+                    state[1][0], state[1][1]).model_class()
+                value = model_class.objects.get(pk=state[2])
+                cache.set(cache_key, value, 7*60)
+
+            self.value = value
         else:
             self.value = state
