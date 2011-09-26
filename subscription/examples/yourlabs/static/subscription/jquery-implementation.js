@@ -1,12 +1,12 @@
 Subscription = function(json_url, push_url, override) {
     instance = $.extend({
-        'delay': 3000,
+        'delay': 7000,
         'json_url': json_url,
         'push_url': push_url,
         'queue_limit': 10,
         'setup_dropdown': function() {
-            $('.subscription .queue .toggler').click(function() {
-                var dropdown = $(this).parents('.queue').find('.dropdown');
+            $('.subscription .toggler').live('click', function() {
+                var dropdown = $(this).parent().find('.dropdown.inner');
 
                 if (dropdown.css('display') == 'block') {
                     dropdown.slideUp();
@@ -14,9 +14,9 @@ Subscription = function(json_url, push_url, override) {
                     dropdown.slideDown();
 
                     var dropdown_name = Subscription.singleton.get_dropdown_name($(this));
-                    var counter = parseInt($(this).find('.counter').html());
+                    var counter = $(this).find('.counter')
 
-                    if (counter > 0) {
+                    if (parseInt(counter.html()) > 0) {
                         counter.html('0');
                         $.get(Subscription.singleton.push_url, {
                             'dropdown': dropdown_name,
@@ -40,6 +40,7 @@ Subscription = function(json_url, push_url, override) {
 
             for(var dropdown_name in dropdowns) {
                 var wrapper = $('#subscription_dropdown_' + dropdown_name);
+                console.log(wrapper, dropdowns[dropdown_name])
                 wrapper.html(dropdowns[dropdown_name]);
             }
         },
@@ -56,8 +57,8 @@ Subscription = function(json_url, push_url, override) {
             }, Subscription.singleton.delay);
         },
         'get_dropdown_name': function(el) {
-            var queue_el = el.is('.queue') ? el : el.parents('.queue');
-            return queue_el.attr('id').match(/subscription_queue_(.+)$/)[1];
+            var dropdown_el = el.is('.dropdown') ? el : el.parents('.dropdown');
+            return dropdown_el.attr('id').match(/subscription_dropdown_(.+)$/)[1];
         },
 
     }, override);

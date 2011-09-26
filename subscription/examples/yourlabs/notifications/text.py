@@ -8,7 +8,7 @@ class TextNotification(base.BaseNotification):
         else:
             if hasattr(self, 'rendered'):
                 del self.rendered
-        return super(TextNotification, self).__getstate__()
+        return self.__dict__
 
     def display(self, viewer=None, view=None):
         context = {}

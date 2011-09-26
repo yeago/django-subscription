@@ -3,7 +3,6 @@ import datetime
 from django.utils.importlib import import_module
 from django.utils import simplejson
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
 
 from subscription.models import Subscription
 from subscription.examples.yourlabs.settings import *
@@ -11,10 +10,11 @@ from subscription.examples.yourlabs.settings import *
 class BaseBackend(object):
     def emit(self, notification, queues=None):
         if queues is None:
-            queues = ['default']
+            if hasattr(notification, 'queues'):
+                queues = notification.queues
 
         for queue in queues:
-            self.queue(notification, queue, state)
+            self.queue(notification, queue)
 
     def queue(self, notification, queue):
         raise NotImplementedError()

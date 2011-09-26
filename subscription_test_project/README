@@ -1,0 +1,20 @@
+Sorry but i need to sleep ...
+
+Cd in the sample project.
+
+Run::
+    
+    ./manage.py runserver
+
+Open http://localhost:8000/admin
+Login with user 'steve' and password 'test'
+
+Open http://localhost:8000/users/steve/
+
+
+Now, in another console, run: ./manage.py shell
+
+And paste this line as many times as you want. It creates a comment and sends the notification.
+from subscription.examples.yourlabs.apps.comments import CommentNotification; from django.contrib.comments.models import Comment; from django.contrib.auth.models import User; CommentNotification(Comment(user=User.objects.get(pk=1), comment='hi', content_object=User.objects.get(pk=2), site_id=1)).emit()
+
+Wait a few seconds and the counter and dropdown inner html should be updated !

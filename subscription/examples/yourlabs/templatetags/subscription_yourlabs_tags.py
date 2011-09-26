@@ -26,8 +26,9 @@ def subscription_yourlabs_dropdown(request, dropdown, states, count, limit=15):
         'notifications': notifications,
         'counter': counter,
         'dropdown': dropdown,
+        'request': request,
     }
 
 @register.simple_tag(takes_context=True)
-def yourlabs_notification_render(context, notification, view):
-    return notification.get_display(context['request'].user, view)
+def yourlabs_notification_render(context, notification, view='html'):
+    return notification.display(context['request'].user, view)
