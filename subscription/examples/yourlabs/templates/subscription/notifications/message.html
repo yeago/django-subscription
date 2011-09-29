@@ -1,0 +1,22 @@
+{% extends 'subscription/notifications/base.html' %}
+
+{% load i18n %}
+
+{% block story %}
+    {% if viewer == actor %}
+        {% trans 'You' %}
+    {% else %}
+        <a href="{{ actor.get_absolute_url }}">{{ actor }}</a>
+    {% endif %}
+
+    {% trans 'sent a private message to' %}
+
+    {% if viewer == recipient %}
+        {% trans 'you' %}
+    {% else %}
+        <a href="{{ recipient.get_absolute_url }}">{{ recipient }}</a>
+    {% endif %}
+    :
+
+    <a href="{{ message.get_absolute_url }}">{{ message.subject }}</a>
+{% endblock %}
