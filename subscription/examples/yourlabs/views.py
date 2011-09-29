@@ -8,8 +8,33 @@ from django.utils import simplejson
 import subscription
 from subscription.examples.yourlabs.settings import *
 
+def list(request, keys=None, states=None, push_states=None,
+    backend='storage', extra_context=None,
+    template_name='subscription/list.html'):
+
+    if not request.user.is_authenticated():
+        return http.HttpResponseForbidden()
+
+    b = subscription.get_backends()[backend]()
+    context = {
+        'today': datetime.date.today(),
+    }
+    notifications = context['notification_list'] = []
+    for key in keys:
+        for state in states:
+            queue = '%s,user=%s,%s' % (key, request.user.pk, state)
+            context['notification_list'] += b.get_notifications(queue)
+
+        for old_state, new_state in push_states.items():
+            b.move_queue(queue, queue.replace(old_state, new_state))
+
+    notifications = sorted(notifications, key=lambda n: n.timestamp)
+
+    context.update(extra_context or {})
+    return shortcuts.render(request, template_name, context)
+
 def dropdown_more(request, push_states=None, backend='storage',
-    template_name='subscription/examples/yourlabs/list.html', 
+    template_name='subscription/list.html', 
     extra_context=None):
     
     if push_states is None:
@@ -38,7 +63,7 @@ def dropdown_more(request, push_states=None, backend='storage',
 
 def dropdown_ajax(request, dropdowns=None, states=None, counter_state=None, 
     new_state=None, push_states=None, limit=15, backend='storage',
-    template_name='subscription/examples/yourlabs/dropdown.html'):
+    template_name='subscription/dropdown.html'):
 
     if not request.user.is_authenticated():
         return http.HttpResponseForbidden()
@@ -71,8 +96,7 @@ def dropdown_ajax(request, dropdowns=None, states=None, counter_state=None,
                 limit=limit-len(notifications))
             queues.append(q)
 
-        context[dropdown] = template.loader.render_to_string(
-        template_name, {
+        context[dropdown] = template.loader.render_to_string(template_name, {
             'notifications': notifications,
             'counter': count,
             'dropdown': dropdown,

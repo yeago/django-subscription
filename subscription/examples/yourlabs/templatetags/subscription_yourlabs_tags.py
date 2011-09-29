@@ -8,7 +8,7 @@ from subscription.examples.yourlabs.settings import *
 
 register = template.Library()
 
-@register.inclusion_tag('subscription/examples/yourlabs/dropdown.html')
+@register.inclusion_tag('subscription/dropdown.html')
 def subscription_yourlabs_dropdown(request, dropdown, states, count, limit=15):
     if not request.user.is_authenticated():
         return {}

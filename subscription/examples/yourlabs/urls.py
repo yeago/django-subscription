@@ -14,10 +14,18 @@ urlpatterns = patterns('subscription.examples.yourlabs.views',
             'unacknowledged': 'acknowledged',
         },
     }, 'subscription_dropdown_open'),
-    url(r'^$', 'dropdown_more', {
+    url(r'^dropdown/more/$', 'dropdown_more', {
         'push_states': {
             'undelivered': 'acknowledged',
             'unacknowledged': 'acknowledged',
-        }
-    }, 'subscription_dropdown_more')
+        },
+    }, 'subscription_dropdown_more'),
+    url(r'^$', 'list', {
+        'keys': ['dropdown=other', 'dropdown=friends', 'dropdown=messages'],
+        'states': ['undelivered', 'unacknowledged', 'acknowledged'],
+        'push_states': {
+            'undelivered': 'acknowledged',
+            'unacknowledged': 'acknowledged',
+        },
+    }, 'subscription_list'),
 )
