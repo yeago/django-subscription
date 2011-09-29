@@ -1,9 +1,12 @@
 import datetime
+import logging
 
 try:
    import cPickle as pickle
 except:
    import pickle
+
+logger = logging.getLogger('redis')
 
 import redis
 
@@ -21,9 +24,12 @@ class RedisBackend(base.BaseBackend):
         return self._redis
 
     def queue(self, notification, queue):
+        logger.debug('queuing to %s: %s' % (queue, notification))
         self.redis.lpush(self.prefix + queue, pickle.dumps(notification))
 
     def move_queue(self, source, destination):
+        logger.debug('moving to %s: %s' % (source, destination))
+
         source = self.prefix + source
         destination = self.prefix + destination
 
