@@ -18,11 +18,9 @@ class Notification(object):
         if queues is None and local_queues:
             queues = self.queues
 
-        if not queues:
-            raise Exception('What queue should i emit to ?')
-
-        for backend_module in subscription.get_backends().values():
-            backend_module().emit(self, queues)
+        if queues:
+            for backend_module in subscription.get_backends().values():
+                backend_module().emit(self, queues)
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
