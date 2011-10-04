@@ -15,7 +15,7 @@ from subscription.examples.yourlabs.settings import *
 
 class RedisBackend(base.BaseBackend):
     def __init__(self, prefix='subscription:'):
-        self.prefix = prefix
+        self.prefix = REDIS_PREFIX + prefix
 
     @property
     def redis(self):
