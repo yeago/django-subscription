@@ -51,7 +51,7 @@ class RedisBackend(base.BaseBackend):
         else:
             queue_limit = limit
 
-        for n in self.redis.lrange(queue, 0, queue_limit)
+        for n in self.redis.lrange(queue, 0, queue_limit):
             try:
                 yield pickle.loads(n)
             except models.DoesNotExist:
