@@ -10,6 +10,8 @@ logger = logging.getLogger('redis')
 
 import redis
 
+from django.db import models
+
 import base
 from subscription.examples.yourlabs.settings import *
 
@@ -45,11 +47,17 @@ class RedisBackend(base.BaseBackend):
         if limit > 0:
             queue_limit = limit - 1
         elif limit == 0:
-            return []
+            queue_limit = 0
         else:
             queue_limit = limit
 
-        return [pickle.loads(n) for n in self.redis.lrange(queue, 0, queue_limit)]
+        for n in self.redis.lrange(queue, 0, queue_limit)
+            try:
+                yield pickle.loads(n)
+            except models.DoesNotExist:
+                # notification contains a deleted model, pass on it and let
+                # redis_purge take care of it
+                continue
 
     def count_notifications(self, queue):
         queue = self.prefix + queue
