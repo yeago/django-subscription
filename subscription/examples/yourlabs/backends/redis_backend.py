@@ -54,7 +54,7 @@ class RedisBackend(base.BaseBackend):
         for n in self.redis.lrange(queue, 0, queue_limit):
             try:
                 yield pickle.loads(n)
-            except models.DoesNotExist:
+            except models.ObjectDoesNotExist:
                 # notification contains a deleted model, pass on it and let
                 # redis_purge take care of it
                 continue
