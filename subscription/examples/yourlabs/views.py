@@ -85,6 +85,8 @@ def dropdown_ajax(request, dropdowns=None, states=None, counter_state=None,
 
         q = 'dropdown=%s,user=%s,%s' % (dropdown, request.user.pk, counter_state)
         count = b.count_notifications(q)
+        if dropdown not in remote_counts.keys():
+            continue
         if count <= remote_counts[dropdown]:
             continue
 
