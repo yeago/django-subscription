@@ -1,0 +1,11 @@
+{% autoescape off %}
+New comment at http://{{ domain }}{{ c.get_absolute_url }}
+
+{{ c.user_name }}{% if delete %} ({{ c.user_email }} / {{ c.user_url }} / {{ c.ip_address}} ) {% endif %} says:
+
+{{ c.comment }}
+
+=====
+{% if delete %}delete - http://{{ domain }}/comments/delete/{{ c.id }}/{% endif %}
+unsubscribe - http://{{ domain }}{% url subscription_unsubscribe subscription.content_type_id subscription.object_id %}
+{% endautoescape %}

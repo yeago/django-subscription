@@ -1,0 +1,40 @@
+My goal for this is flexibility without too much structure. Contrast this to:
+
+https://github.com/justquick/django-activity-stream
+
+Which in my opinion is too restrictive in its whole actor/verb setup and
+seems to have unrealistic performance for even medium-size websites (see
+their user_stream method and imagine 60k users and 500k notifications)
+
+I also don't like how Subscription frameworks and Notification frameworks tend
+to be packaged separately. I can't imagine one without the other, so here's both.
+
+SUBSCRIBING:
+
+Subscription.objects.subscribe(user,content_object) # Subscribes a user
+
+EMITTING:
+
+Subscription.objects.emit("Some thing happened to this object!", subscribers_of=content_object)
+
+The args/kwargs to emit() are more or less shuttled straight to the SUBSCRIPTION_BACKEND(s),
+which is a dict in your settings.py like:
+
+SUBSCRIPTION_BACKENDS = {
+    'email': 'myproject.subscription_backends.Email',
+    'redis': 'myproject.subscription_backends.Redis',
+}
+
+Writing a backend:
+
+You can subclass subscription.backends.BaseBackend. Right now the options are:
+
+text - required - The message to post to subscribers
+subscribers_of - Gets the recipients from the Subscription model
+dont_send_to - Useful for supressing comment messages to their own author, for example
+send_only_to - Useful for other things I guess
+actor_display_self - Usually 'You', in case you want to emit a notice
+actor_display_other - Usually 'Some Person' <has comment on...>
+actor - Who's doing the emitting? How we figure out the above
+format_kwargs - applied to 'text' arg (above) via string.Formatter
+**kwargs - Passed onto your backend subclass in case you need more info
