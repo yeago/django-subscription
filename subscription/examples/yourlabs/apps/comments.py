@@ -73,7 +73,7 @@ def comment_static_text_notification(sender, comment=None, **kwargs):
     if comment.user:
         shortcuts.emit_static(CommentNotification,
             comment=comment,
-            text='%(actor)s commented on %(content)s').emit()
+            text='%(actor)s commented on %(content)s')
 
 def comment_static_template_notification(sender, comment=None, **kwargs):
     if comment.user:
