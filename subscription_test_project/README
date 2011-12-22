@@ -1,20 +1,101 @@
-Sorry but i need to sleep ...
+I refreshed the example project to refresh my memory. I will write documentation another time.
 
-Cd in the sample project.
+Meanwhile, you can see how i installed the project in a fresh environment as i pasted the console.
 
-Run::
+The homepage should tell you how to proceed once you have done this step.
+
+
+>>> virtualenv env2
+>>> source env2/bin/activate
+>>> pip install -e git+git@github.com:yourlabs/django-subscription.git#egg=subscription
+Obtaining subscription from git+git@github.com:yourlabs/django-subscription.git#egg=subscription
+  Cloning git@github.com:yourlabs/django-subscription.git to ./env2/src/subscription
+  Running setup.py egg_info for package subscription
     
-    ./manage.py runserver
+Installing collected packages: subscription
+  Running setup.py develop for subscription
+    
+    Creating /home/jpic/env2/lib/python2.7/site-packages/django-subscription.egg-link (link to .)
+    Adding django-subscription 0.0 to easy-install.pth file
+    
+    Installed /home/jpic/env2/src/subscription
+Successfully installed subscription
+Cleaning up...
+>>> pip install -r env2/src/subscription/subscription_test_project/requirements/project.txt 
+Downloading/unpacking redis (from -r env2/src/subscription/subscription_test_project/requirements/project.txt (line 1))
+  Downloading redis-2.4.10.tar.gz
+  Running setup.py egg_info for package redis
+    
+Downloading/unpacking django-avatar (from -r env2/src/subscription/subscription_test_project/requirements/project.txt (line 2))
+  Downloading django-avatar-1.0.5.tar.gz
+  Running setup.py egg_info for package django-avatar
+    
+Installing collected packages: redis, django-avatar
+  Running setup.py install for redis
+    
+  Running setup.py install for django-avatar
+    
+Successfully installed redis django-avatar
+Cleaning up...
+>>> cd env2/src/subscription/subscription_test_project 
+>>> ./manage.py runserver
+Validating models...
 
-Open http://localhost:8000/admin
-Login with user 'steve' and password 'test'
+0 errors found
+Django version 1.3.1, using settings 'subscription_test_project.settings'
+Development server is running at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+Error: That port is already in use.
+>>> ./manage.py runserver
+Validating models...
 
-Open http://localhost:8000/users/steve/
-
-
-Now, in another console, run: ./manage.py shell
-
-And paste this line as many times as you want. It creates a comment and sends the notification.
-from subscription.examples.yourlabs.apps.comments import CommentNotification; from django.contrib.comments.models import Comment; from django.contrib.auth.models import User; CommentNotification(Comment(user=User.objects.get(pk=1), comment='hi', content_object=User.objects.get(pk=2), site_id=1)).emit()
-
-Wait a few seconds and the counter and dropdown inner html should be updated !
+0 errors found
+Django version 1.3.1, using settings 'subscription_test_project.settings'
+Development server is running at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+[22/Dec/2011 15:14:19] "GET / HTTP/1.1" 200 5076
+[22/Dec/2011 15:14:19] "GET /site_static/static/subscription/jquery-implementation.js HTTP/1.1" 200 3410
+DEBUG moving to dropdown=other,user=2,undelivered: dropdown=other,user=2,unacknowledged
+DEBUG moving to dropdown=friends,user=2,undelivered: dropdown=friends,user=2,unacknowledged
+DEBUG moving to dropdown=messages,user=2,undelivered: dropdown=messages,user=2,unacknowledged
+[22/Dec/2011 15:14:19] "GET /subscription/dropdown/ajax/?x=1324588459621&friends=0&other=0 HTTP/1.1" 200 2
+[22/Dec/2011 15:14:23] "GET /users/steve/ HTTP/1.1" 200 2174
+[22/Dec/2011 15:14:24] "GET /admin/ HTTP/1.1" 200 2076
+[22/Dec/2011 15:14:26] "POST /admin/ HTTP/1.1" 302 0
+[22/Dec/2011 15:14:26] "GET /admin/ HTTP/1.1" 200 4600
+DEBUG moving to dropdown=other,user=2,undelivered: dropdown=other,user=2,unacknowledged
+DEBUG moving to dropdown=friends,user=2,undelivered: dropdown=friends,user=2,unacknowledged
+DEBUG moving to dropdown=messages,user=2,undelivered: dropdown=messages,user=2,unacknowledged
+[22/Dec/2011 15:14:26] "GET /subscription/dropdown/ajax/?x=1324588466738&friends=0&other=0 HTTP/1.1" 200 2
+[22/Dec/2011 15:14:28] "GET / HTTP/1.1" 200 4130
+[22/Dec/2011 15:14:28] "GET /site_static/static/subscription/jquery-implementation.js HTTP/1.1" 200 3410
+DEBUG moving to dropdown=other,user=1,undelivered: dropdown=other,user=1,unacknowledged
+DEBUG moving to dropdown=friends,user=1,undelivered: dropdown=friends,user=1,unacknowledged
+DEBUG moving to dropdown=messages,user=1,undelivered: dropdown=messages,user=1,unacknowledged
+[22/Dec/2011 15:14:28] "GET /subscription/dropdown/ajax/?x=1324588468889&friends=0&other=0 HTTP/1.1" 200 2
+[22/Dec/2011 15:14:30] "GET /users/steve/ HTTP/1.1" 200 4844
+DEBUG moving to dropdown=other,user=1,undelivered: dropdown=other,user=1,unacknowledged
+DEBUG moving to dropdown=friends,user=1,undelivered: dropdown=friends,user=1,unacknowledged
+DEBUG moving to dropdown=messages,user=1,undelivered: dropdown=messages,user=1,unacknowledged
+[22/Dec/2011 15:14:30] "GET /subscription/dropdown/ajax/?x=1324588470221&friends=0&other=0 HTTP/1.1" 200 2
+DEBUG queuing to dropdown=other,user=2,undelivered: <subscription.examples.yourlabs.apps.comments.CommentNotification object at 0x1937c90>
+[22/Dec/2011 15:14:32] "POST /comments/post/ HTTP/1.1" 302 0
+[22/Dec/2011 15:14:32] "GET /comments/posted/?c=1 HTTP/1.1" 200 3456
+DEBUG moving to dropdown=other,user=1,undelivered: dropdown=other,user=1,unacknowledged
+DEBUG moving to dropdown=friends,user=1,undelivered: dropdown=friends,user=1,unacknowledged
+DEBUG moving to dropdown=messages,user=1,undelivered: dropdown=messages,user=1,unacknowledged
+[22/Dec/2011 15:14:32] "GET /subscription/dropdown/ajax/?x=1324588472388&friends=0&other=0 HTTP/1.1" 200 2
+DEBUG moving to dropdown=other,user=2,undelivered: dropdown=other,user=2,unacknowledged
+DEBUG moving to dropdown=friends,user=2,undelivered: dropdown=friends,user=2,unacknowledged
+DEBUG moving to dropdown=messages,user=2,undelivered: dropdown=messages,user=2,unacknowledged
+[22/Dec/2011 15:14:33] "GET /subscription/dropdown/ajax/?x=1324588473763&friends=0&other=0 HTTP/1.1" 200 1712
+DEBUG moving to dropdown=other,user=2,unacknowledged: dropdown=other,user=2,acknowledged
+[22/Dec/2011 15:14:35] "GET /subscription/dropdown/open/?dropdown=other HTTP/1.1" 200 2
+DEBUG moving to dropdown=other,user=1,undelivered: dropdown=other,user=1,unacknowledged
+DEBUG moving to dropdown=friends,user=1,undelivered: dropdown=friends,user=1,unacknowledged
+DEBUG moving to dropdown=messages,user=1,undelivered: dropdown=messages,user=1,unacknowledged
+[22/Dec/2011 15:14:39] "GET /subscription/dropdown/ajax/?x=1324588479400&friends=0&other=0 HTTP/1.1" 200 2
+DEBUG moving to dropdown=other,user=2,undelivered: dropdown=other,user=2,unacknowledged
+DEBUG moving to dropdown=friends,user=2,undelivered: dropdown=friends,user=2,unacknowledged
+DEBUG moving to dropdown=messages,user=2,undelivered: dropdown=messages,user=2,unacknowledged
+[22/Dec/2011 15:14:40] "GET /subscription/dropdown/ajax/?x=1324588480849&friends=0&other=1 HTTP/1.1" 200 2
