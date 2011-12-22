@@ -1,55 +1,85 @@
+{% load url from future %}
 {% load i18n %}
 {% load subscription_yourlabs_tags %}
 {% load avatar_tags %}
 {% load static %}
 {% get_static_prefix as STATIC_PREFIX %}
-<html>
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
     <head>
+        <meta charset="utf-8" />
+        <title>{% block head_title_base %}{% if SITE_NAME %}{{ SITE_NAME }} : {% endif %}{% block head_title %}{% endblock %}{% endblock %}</title>
+        <!-- HTML5 shim, for IE6-8 support of HTML elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
         <style type="text/css">
-            .header {
-                height: 30px;
-                background-color: #FFF000;
-            }
-            .subscription div {
-                display: inline-block;
-            }
             .subscription .hidden {
                 display: none;
             }
-            .subscription .dropdown {
-                overflow: visible;
+            .subscription .dropdown.inner {
                 position: absolute;
-                z-index: 100;
-                width: 330px;
-                background-color: white;
+                width: 300px;
             }
-            .subscription .list .notification {
-                display: block;
+            .subscription .toggler {
+                background-color: rgba(0, 0, 0, 0.5);
+                color: #FFFFFF;
+                line-height: 19px;
+                padding: 10px 10px 11px;
             }
         </style>
+        <link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css"></link>
     </head>
     <body>
-        <div class="header">
-            {% if request.user.is_authenticated %}
-                <div class="subscription">
-                    <div class="dropdown outer friends" id="subscription_dropdown_friends">
-                        {% subscription_yourlabs_dropdown request 'friends' 'undelivered,unacknowledged,acknowledged' 'undelivered,unacknowledged' 15 %}
-                    </div>
-                    <div class="dropdown outer other" id="subscription_dropdown_other">
-                        {% subscription_yourlabs_dropdown request 'other' 'undelivered,unacknowledged,acknowledged' 'undelivered,unacknowledged' 15 %}
-                    </div>
+        <div class="topbar">
+            <div class="fill">
+                <div class="container">
+                    <a class="brand" href="#">Bootstrap</a>
+
+                    <ul class="nav">
+                        {% if request.user.username != 'steve' %}
+                        <li>
+                            <a href="{% url 'user_detail' 'steve' %}">Steve</a>
+                        </li>
+                        {% endif %}
+                        {% if request.user.username != 'james' %}
+                        <li>
+                            <a href="{% url 'user_detail' 'james' %}">James</a>
+                        </li>
+                        {% endif %}
+ 
+                    </ul>
+
+                    <ul class="nav subscription nav secondary-nav">
+                        {% if request.user.is_authenticated %}
+                            <li>
+                                <a href="{% url 'avatar_change' %}" title="{% trans 'Change avatar' %}">
+                                    {% avatar request.user 32 %}
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    Hello {{ request.user }}
+                                </a>
+                            </li>
+                            <li class="dropdown outer friends" id="subscription_dropdown_friends">
+                                {% subscription_yourlabs_dropdown request 'friends' 'undelivered,unacknowledged,acknowledged' 'undelivered,unacknowledged' 15 %}
+                            </li>
+                            <li class="dropdown outer other" id="subscription_dropdown_other">
+                                {% subscription_yourlabs_dropdown request 'other' 'undelivered,unacknowledged,acknowledged' 'undelivered,unacknowledged' 15 %}
+                            </li>
+                        {% else %}
+                            <li>
+                                <a href="/admin/">{% trans 'Login' %}</a>
+                            </li>
+                        {% endif %}
+                    </ul>
                 </div>
-                <div class="user">
-                    <a href="{% url avatar_change %}" title="{% trans 'Change avatar' %}">
-                        {% avatar request.user 32 %}
-                    </a> Hello {{ request.user }}
-                </div>
-            {% else %}
-                <a href="/admin/">{% trans 'Login' %}</a>
-            {% endif %}
+            </div>
         </div>
 
-        <div class="body">
+        <div class="container" style="margin-top: 80px">
             {% block body %}
             {% endblock %}
         </div>
@@ -59,7 +89,7 @@
         <script type="text/javascript" src="{{ STATIC_PREFIX }}subscription/jquery-implementation.js"></script>
         <script type="text/javascript">
             $(document).ready(function() {
-                Subscription.factory('{% url subscription_dropdown_ajax %}', '{% url subscription_dropdown_open %}');
+                Subscription.factory('{% url 'subscription_dropdown_ajax' %}', '{% url 'subscription_dropdown_open' %}');
             });
         </script>
         {% endif %}

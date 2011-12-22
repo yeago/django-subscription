@@ -1,0 +1,47 @@
+{% load comments i18n %} 
+{% load avatar_tags %} 
+
+{% if not request.user.is_authenticated %}
+<p class="alert">
+    {% trans 'Login with username james or steve and password test to comment' %}
+</p>
+{% else %}
+<div class="comment_form_container">
+    <form action="{% comment_form_target %}" method="post">{% csrf_token %} 
+      {% if next %}<div><input type="hidden" name="next" value="{{ next }}" /></div>{% endif %} 
+
+      {% if request.user.is_authenticated %} 
+        <input type="hidden" name="name" value="{{ request.user }}" />
+      {% else %} 
+        {% if form.name.errors %}{{ form.name.errors }}{% endif %} 
+        {% trans 'your name' %}: {{ form.name }} 
+      {% endif %} 
+
+      {% if request.user.is_authenticated %} 
+        <input type="hidden" email="email" value="{{ request.user }}" />
+      {% else %} 
+        {% if form.email.errors %}{{ form.email.errors }}{% endif %} 
+        {% trans 'your email' %}: {{ form.email }} 
+      {% endif %} 
+   
+      {% if form.comment.errors %}{{ form.comment.errors }}{% endif %} 
+
+      {% if request.user %}{% avatar request.user 60 %}{% endif %} 
+      {{ form.comment }} 
+
+      {% if not request.user.is_authenticated %} 
+      <br />
+      {{ form.honeypot.label_tag }}: {{ form.honeypot }} 
+      {% endif %} 
+
+      {% for field in form %} 
+        {% if field.is_hidden %} 
+          <div>{{ field }}</div>
+        {% endif %} 
+      {% endfor %} 
+      <p class="submit">
+        <input type="submit" name="post" class="submit-post btn primary" value="{% trans "Post" %}" />
+      </p>
+    </form>
+</div>
+{% endif %}

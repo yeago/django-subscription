@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load url from future %}
+
+{% block body %}
+<ul>
+    <li>
+        <a href="{% url 'user_detail' 'steve' %}">Steve</a>
+    </li>
+    <li>
+        <a href="{% url 'user_detail' 'james' %}">James</a>
+    </li>
+</ul>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% load avatar_tags %}
+{% load subscription_yourlabs_tags %}
+            
+{% if actor %} 
+    {% avatar actor 16 %}
+{% endif %}     
+            
+{% block story %}{% endblock %}
+
+{{ sent_at|timesince_human }}
+
