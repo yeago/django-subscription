@@ -2,12 +2,18 @@
 {% load url from future %}
 
 {% block body %}
-<ul>
-    <li>
-        <a href="{% url 'user_detail' 'steve' %}">Steve</a>
-    </li>
-    <li>
-        <a href="{% url 'user_detail' 'james' %}">James</a>
-    </li>
-</ul>
+<h1>Welcome to django-subscription-yourlabs example project !</h1>
+
+<p>
+    Open the website in two browsers (say chromium and firefox), login with
+    "steve" in one and with "james" in the other. The password for both is
+    "test".
+</p>
+<p>
+    Get steve to post on james and vice versa.
+</p>
+<p>
+    project_specific.py contains the only python that ties this project and
+    django-subscription. You can tweak this and even the templates if you want !
+</p>
 {% endblock %}

@@ -84,25 +84,25 @@ SUBSCRIPTION_BACKENDS = {
     'storage': 'subscription.examples.yourlabs.backends.RedisBackend',
 }
 
-#LOGGING = {
-#    'version': 1,
-#    'formaters': {
-#        'simple': {
-#            'format': '%(levelname)s %(message)s',
-#        }
-#    },
-#    'handlers': {
-#        'console':{
-#            'level':'DEBUG',
-#            'class':'logging.StreamHandler',
-#            'formatter': 'simple'
-#        },  
-#    },
-#    'loggers': {
-#        'django': {
-#            'handlers': ['console'],
-#            'level': 'INFO',
-#            'propagate': True,
-#        },
-#    }
-#}
+LOGGING = {
+   'version': 1,
+   'disable_existing_loggers': True,
+   'formatters': {
+       'simple': {
+           'format': '%(levelname)s %(message)s',
+       },
+   },
+   'handlers': {
+       'console':{
+           'level':'DEBUG',
+           'class':'logging.StreamHandler',
+           'formatter': 'simple'
+       },  
+   },
+   'loggers': {
+       'redis': {
+           'handlers': ['console'],
+           'level': 'DEBUG',
+       },
+   }
+}
