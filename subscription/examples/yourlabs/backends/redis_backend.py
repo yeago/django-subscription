@@ -30,6 +30,10 @@ class RedisBackend(base.BaseBackend):
         self.redis.lpush(self.prefix + queue, pickle.dumps(notification))
 
     def move_queue(self, source, destination):
+        if source == destination:
+            # that would result in key deletion
+            logger.debug('NOT moving to %s: %s' % (source, destination))
+            return
         logger.debug('moving to %s: %s' % (source, destination))
 
         source = self.prefix + source
