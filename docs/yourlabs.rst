@@ -12,6 +12,35 @@ In an infinite quest for karma, and maybe because the anarchist in me loves the
 idea that any worker can share tools without real notion of property, I'd love
 to help so you can just send me private messages if you need support.
 
+Concept
+-------
+
+The architecture is articulated over three main pieces:
+
+Notfication classes
+    A notification class encapsulates all the variables and methods that a
+    notification needs from emission to rendering.
+
+Backends
+    A backend is a class that takes notifications and is responsible for
+    delivering notification instances to users.
+
+Subscription model
+    A simple model that links a user with any other model using a generic
+    foreign key. It keeps track of user subscriptions.
+
+Notification classes
+>>>>>>>>>>>>>>>>>>>>
+
+This might be hard for some of you so first i'm going to vaguely describe the
+class, than ask you to read the class source, then go into deeper details.
+
+A notification class, is a type of notification. A notification instance, is an
+actual notification.
+
+(this section of the documentation will be finished later. I just spent 2 hours
+and need to do some paid work for a while)
+
 Running tests
 -------------
 
@@ -33,9 +62,9 @@ you start any daemons in your distro. For example, `/etc/rc.d/redis start` in
 my distro. Don't forget to add it to server start if you wish to keep it! This
 is done by adding `redis` to the DAEMONS array of `/etc/rc.conf` in my distro.
 
-Then, install the redis-py module for example::
+Then, install the redis module for example::
 
-    pip install redis-py
+    pip install redis
 
 Install subscription base
 `````````````````````````
@@ -46,20 +75,8 @@ Start with the base subscription backend, which you will probably override
 later::
 
     SUBSCRIPTION_BACKENDS = { 
-        'site': 'subscription.examples.yourlabs.backends.SiteBackend'
+        'site': 'subscription.examples.yourlabs.backends.RedisBackend'
     }
-
-If you want to use multiple queues like facebook, then also add this setting
-which will serve as reference for this documentation::
-
-    SUBSCRIPTION_NOTIFICATION_QUEUES = [
-        'chat',
-        'friends',
-    ]
-
-Note that you don't have to declare `SUBSCRIPTION_NOTIFICATION_QUEUES` in order
-to use multiple queues. It *only* serves as default for methods like
-`push_states`. So you're strongly advised to add this setting.
 
 Urls
 ````
@@ -71,22 +88,36 @@ Add to your root urlconf (ie. `urls.py`) urlpatterns::
         url(r'^notifications/', include('subscription.examples.yourlabs.urls')),
     )
 
-This will provide two urls:
+This will provide some urls. 
 
-- `subscription_list`: a page that lists notifications by day
-- `subscription_json`: returns 15 new notifications as json, and counts
+dropdown
+    This is not a view name but you need to understand this naming. A dropdown
+    is a javascript widget that displays the notifications from a queue. A
+    dropdown is not a queue, a dropdown *has* a queue.
 
-If you want to get a different number of notifications as json, just override
-the url, for example::
+subscription_dropdown_ajax
+    This view is called by javascript every X seconds because it returns the
+    inner html for the javascript dropdown widgets as well as some meta data.
+    By default, it pushes notifications from the state undelivered to
+    unacknowledged.
 
-    urlpatterns = patterns('',
-        # [snip your urls]
-        url(r'^notifications/', 
-            include('subscription.examples.yourlabs.urls')),
-        url(r'^notifications/json/$', 
-            'subscription.examples.yourlabs.views.json', 
-            {'queue_limit': 30}, name='subscription_json'),
-    )
+subscription_dropdown_open
+    Ths view is called by javascript when the user clicks to the dropdown. By
+    default, it pushes notifications of state unacknowledged to acknowledged.
+
+subscription_dropdown_more
+    This is the view that displays all notifications of a single dropdown.
+    Typically it is linked from the inner dropdown HTML as "see more" link.
+
+subscription_list
+    This view displays all notifications from all queues.
+
+The configuration of these views is done in their url definition. Take a look
+at yourlabs/urls.py and see how it is customizable.
+
+In the default configuration, a notification can be part of one of the two
+queues (other and friends) and have one of the three states (undelivered,
+unacknowledged, acknowledged).
 
 Static files
 ````````````
@@ -117,10 +148,16 @@ In your base template, add::
 
     {% load subscription_yourlabs_tags %}
 
-    {% subscription_yourlabs_widget request 15 %}
+    {% subscription_yourlabs_dropdown request 'friends' 'undelivered,unacknowledged,acknowledged' 'undelivered,unacknowledged' 15 %}
+
+This will display a notifiction widget for the request, of queue 'friends', of
+states 'undelivered,unacknowledged,acknowledged' but will only count
+notifications of state 'undelivered,unacknowledged'.
 
 This will display the notification widget with 15 initial notifications (which
 is the default).
+
+That doesn't even require javascript.
 
 Live notifications with javascript
 ``````````````````````````````````
@@ -153,30 +190,3 @@ override any method or option the same way. For example::
             });
         });
     </script>
-
-Customize the backend
----------------------
-
-Create such a backend::
-
-    from subscription.examples.yourlabs import backends
-
-    class SiteBackend(backends.TranslationBackend, backends.PinaxBackend, 
-                      backends.HtmlBackend, backends.RedisBackend, 
-                      backends.BaseBackend):
-        pass
-
-Obviously, you should remove `backends.TranslationBackend` if you don't need
-translations. Also, you should remove `backends.PinaxBackend` if you're not
-using pinax.apps.account.
-
-Note that the first method you will want to override is probably
-`process_user_context()`. It allows you to do all common context processing
-before rendering notification texts.
-
-If you've put this in a file called `subscription_backends.py` in your project
-root, then this setting would work::
-
-    SUBSCRIPTION_BACKENDS = {
-        'site': 'subscription_backends.SiteBackend',
-    }
