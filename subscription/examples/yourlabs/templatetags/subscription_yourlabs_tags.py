@@ -42,6 +42,9 @@ def yourlabs_notification_render(context, notification, view='html'):
 # courtesy of http://djangosnippets.org/snippets/2275/
 @register.filter(name='timesince_human')
 def humanize_timesince(date):
+    if not date:
+        return
+
     delta = datetime.datetime.now() - date
 
     num_years = delta.days / 365
