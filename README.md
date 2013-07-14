@@ -4,20 +4,20 @@ http://activitystrea.ms/head/json-activity.html
 
 # Subscribing
 
-   Subscription.objects.subscribe(user,content_object) # Subscribes a user
+    Subscription.objects.subscribe(user,content_object) # Subscribes a user
 
 # Emitting
 
-   Subscription.objects.emit("comment.create", comment_obj,
+    Subscription.objects.emit("comment.create", comment_obj,
                              subscribers_of=comment_obj.content_object)
 
 The args/kwargs to emit() are more or less shuttled straight to the SUBSCRIPTION_BACKEND(s),
 which is a dict in your settings.py like:
 
-   SUBSCRIPTION_BACKENDS = {
+    SUBSCRIPTION_BACKENDS = {
       'email': 'myproject.subscription_backends.Email',
       'redis': 'myproject.subscription_backends.Redis',
-:  }
+    }
 
 # Writing a backend
 
