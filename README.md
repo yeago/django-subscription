@@ -23,12 +23,12 @@ which is a dict in your settings.py like:
 
 You can subclass subscription.backends.BaseBackend. Right now the options are:
  
- instance
- verb
- subscribers_of - Gets the recipients from the Subscription model
- dont_send_to - Useful for supressing comment messages to their own author, for example
- send_only_to - Useful for other things I guess
- **kwargs - Passed onto your backend subclass in case you need more info
+* instance
+* verb
+* subscribers_of - Gets the recipients from the Subscription model
+* dont_send_to - Useful for supressing comment messages to their own author, for example
+* send_only_to - Useful for other things I guess
+* **kwargs - Passed onto your backend subclass in case you need more info
  
  
  
