@@ -1,26 +1,26 @@
 import datetime
 
 from django.db import models
-from django.conf import settings
 
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 
 import subscription
 
+
 class SubscriptionManager(models.Manager):
     def subscribe(self,user,obj):
         ct = ContentType.objects.get_for_model(obj)
         Subscription.objects.get_or_create(content_type=ct,object_id=obj.pk,user=user)
 
-    def emit(self,*args,**kwargs):
+    def emit(self, *args, **kwargs):
         backend = kwargs.pop('backend',None) or None
 
         if backend:
             return subscription.get_backends()[backend]
 
         for backend_module in subscription.get_backends().values():
-            backend_module(*args,**kwargs)
+            backend_module(*args, **kwargs)
 
 class Subscription(models.Model):
     user = models.ForeignKey('auth.User')
