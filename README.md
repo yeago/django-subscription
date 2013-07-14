@@ -31,11 +31,10 @@ send_only_to - Useful for other things I guess
 **kwargs - Passed onto your backend subclass in case you need more info
 
 
-###  A common activity stream setup powered via redis could look like:
 
+## Sample setup
 
-####  Backend
-
+:   # backend.py
 :   from subscription import backends
 :   from .utils import Redis
 
@@ -44,11 +43,9 @@ send_only_to - Useful for other things I guess
 :           conn = Redis()
 :           item = json.dumps((time.mktime(datetime.datetime.now().timetuple()), spec))
 :           conn.lpush("actstream::%s::undelivered" % user.pk,item)
-
-
-####  Retrieving messages
-
-
+:
+:  
+:   # retrieve.py
 :   def user_stream(user, clear_undelivered=False):
 :       def deserialize_stream(stream):
 :           stream_redux = []
@@ -72,3 +69,6 @@ send_only_to - Useful for other things I guess
 :       groups['unacknowledged'] = deserialize_stream(conn.lrange("actstream::%s::unacknowledged" % (user.pk),0,-1))
 :       groups['undelivered'] = deserialize_stream(conn.lrange("actstream::%s::undelivered" % (user.pk),0,-1))
 :       return groups
+:
+:       def deserialize_stream(redis_args):
+:           # Pull from redis, display however the heck you want.
