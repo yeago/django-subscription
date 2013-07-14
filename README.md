@@ -35,7 +35,7 @@ You can subclass subscription.backends.BaseBackend. Right now the options are:
 ## Sample setup
 
 
-    backend.py
+    #backend.py
     from subscription import backends
     from .utils import Redis
     class ActStream(backends.BaseBackend):
@@ -43,7 +43,7 @@ You can subclass subscription.backends.BaseBackend. Right now the options are:
             conn = Redis()
             item = json.dumps((time.mktime(datetime.datetime.now().timetuple()), spec))
             conn.lpush("actstream::%s::undelivered" % user.pk,item)
-    retrieve.py
+    #retrieve.py
     def user_stream(user, clear_undelivered=False):
         def deserialize_stream(stream):
             stream_redux = []
