@@ -1,4 +1,4 @@
-ADOPTED SPEC FORMAT:
+# Adopted Spec Format
 
 http://activitystrea.ms/head/json-activity.html
 
@@ -31,10 +31,10 @@ send_only_to - Useful for other things I guess
 **kwargs - Passed onto your backend subclass in case you need more info
 
 
-#  A common activity stream setup powered via redis could look like:
+###  A common activity stream setup powered via redis could look like:
 
 
-# Backend
+####  Backend
 
 :   from subscription import backends
 :   from .utils import Redis
@@ -46,7 +46,7 @@ send_only_to - Useful for other things I guess
 :           conn.lpush("actstream::%s::undelivered" % user.pk,item)
 
 
-#  Retrieving messages
+####  Retrieving messages
 
 
 :   def user_stream(user, clear_undelivered=False):
