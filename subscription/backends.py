@@ -41,7 +41,7 @@ class BaseBackend(object):
                 continue
             self.emit(i.user, spec, **kwargs)
 
-    def emit(self,user,text,**kwargs):
+    def emit(self, user, spec, **kwargs):
         raise NotImplementedError("Override this!")
 
 class SimpleEmailBackend(BaseBackend):
