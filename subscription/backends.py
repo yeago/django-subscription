@@ -27,9 +27,10 @@ class BaseBackend(object):
             return
 
         self.content_type = ContentType.objects.get_for_model(subscribers_of)
-        subscription_kwargs = {'content_type':
-            self.content_type.pk,
-            'object_id': subscribers_of.pk}
+        subscription_kwargs = {
+            'content_type': self.content_type.pk,
+            'object_id': subscribers_of.pk
+        }
         if send_only_to:
             subscription_kwargs.update({'user__in': send_only_to})
 
