@@ -24,8 +24,8 @@ class SubscriptionManager(models.Manager):
             backend_module(*args, **kwargs)
 
     def emit_model(self, verb, instance, **kwargs):
-        spec = settings.SUBSCRIPTION_MODELSPEC_MAP[verb]
-        return self.emit(verb, spec, **kwargs)
+        spec = settings.SUBSCRIPTION_MODELSPEC_MAP[verb](verb, instance)
+        return self.emit(spec, **kwargs)
 
 class Subscription(models.Model):
     user = models.ForeignKey('auth.User')
