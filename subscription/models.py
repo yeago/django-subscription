@@ -25,6 +25,8 @@ class SubscriptionManager(models.Manager):
 
     def emit_model(self, verb, instance, **kwargs):
         spec = settings.SUBSCRIPTION_MODELSPEC_MAP[verb](verb, instance)
+        if not 'subscribers_of' in kwargs and not send_only_to in kwargs:
+            kwargs['subscribers_of'] = instance
         return self.emit(spec, **kwargs)
 
 class Subscription(models.Model):
