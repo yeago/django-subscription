@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-subscription',
-    version="0.0",
+    version="0.1",
     author='Steve Yeago',
     author_email='subsume@gmail.com',
     description='Managing subscriptions in Django',
