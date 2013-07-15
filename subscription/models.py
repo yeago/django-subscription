@@ -5,7 +5,7 @@ from django.db import models
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 
-import subscription
+from subscription.base import get_backends
 
 
 class SubscriptionManager(models.Manager):
@@ -17,9 +17,9 @@ class SubscriptionManager(models.Manager):
         backend = kwargs.pop('backend',None) or None
 
         if backend:
-            return subscription.get_backends()[backend]
+            return get_backends()[backend]
 
-        for backend_module in subscription.get_backends().values():
+        for backend_module in get_backends().values():
             backend_module(*args, **kwargs)
 
 class Subscription(models.Model):
