@@ -2,7 +2,9 @@ from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.list_detail import object_list
+from django.utils.decorators import method_decorator
 from subscription.models import Subscription
+from django.views.generic import ListView
 
 from django.contrib import messages
 
@@ -29,3 +31,12 @@ def subscriptions_for_user(request,user,queryset=None):
 	if not queryset:
 		queryset = Subscription.objects.all()
 	return object_list(request,queryset.filter(user=user))
+
+class SubscriptionView(ListView):
+    paginate_by = 25
+    ordering = ['timestamp']
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+            return super(SubscriptionView, self).dispatch(*args, **kwargs)
+    def get_queryset(self):
+        return Subscription.objects.filter(user=self.request.user).order_by('-timestamp')
