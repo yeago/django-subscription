@@ -5,6 +5,7 @@ from django.views.generic.list_detail import object_list
 from django.utils.decorators import method_decorator
 from subscription.models import Subscription
 from django.views.generic import ListView
+from django.contrib.auth.decorators import login_required
 
 from django.contrib import messages
 
