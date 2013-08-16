@@ -23,7 +23,7 @@ class ModelEmitter(object):
     models into specs. Probably won't work perfectly out of
     the box, but that's why we subclass.
     """
-    def __init__(self, *kwargs):
+    def __init__(self, kwargs):
         self.kwargs = kwargs
 
     def _generic(self, obj):

@@ -30,8 +30,9 @@ class BaseBackend(object):
         CAREFUL: If you send a typo-kwarg it will just be sent to emit(), so no error will raise =(
         """
         spec = spec or {}
+        spec['verb'] = verb
         if emitter_class:
-            emitter = emitter_class(verb=verb, **kwargs)
+            emitter = emitter_class(kwargs)
             for prop in ACTSTREAM_PROPERTIES:
                 if getattr(emitter, prop, None):
                     spec[prop] = getattr(emitter, prop)
@@ -62,7 +63,7 @@ class BaseBackend(object):
         raise NotImplementedError("Override this!")
 
 
-class ActStream(BaseBackend):
+class UserStream(BaseBackend):
     def emit(self, user, spec, **kwargs):
         conn = get_cache_client()
         if not spec.get("published"):
