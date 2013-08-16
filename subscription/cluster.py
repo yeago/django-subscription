@@ -11,7 +11,8 @@ def render_actors(actors):
     2 actors    -   SomeBody and AnotherPerson commented on X
     >2 actors   -   SomeBody, AnotherPerson and 3 others commented on X
     """
-    actors = set(actors)
+    actors = map(dict, set(tuple(sorted(d.items())) for d in actors))
+    # http://stackoverflow.com/questions/11092511/python-list-of-unique-dictionaries
     join_on = ", "
     if len(actors) == 2:
         join_on = " and "
@@ -36,7 +37,7 @@ def cluster_specs(specs):
 def render_clusters(clusters):
     for cluster in clusters.values():
         formatting = {}
-        formatting['actor'] = render_actors([i['actor'] for i in cluster])
+        formatting['actor'] = render_actors([i['actor'] for i in cluster if i['actor'].get('displayName')])
         formatting['target'] = cluster[0]['target']['displayName']
         verbage = settings.SUBSCRIPTION_VERB_RENDER_MAP[cluster[0]['verb']] % formatting
         yield datetime.datetime.fromtimestamp(max(i["published"] for i in cluster)), verbage
