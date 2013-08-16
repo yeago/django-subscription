@@ -7,22 +7,34 @@ from .client import get_cache_client
 
 from subscription.models import Subscription
 
+ACTSTREAM_PROPERTIES = [
+    'published',
+    'actor',
+    'target',
+    'object',
+]
+
 class BaseBackend(object):
     def __call__(obj, *args, **kwargs):
         return obj(*args, **kwargs)
 
-    def __init__(self, spec, subscribers_of=None, dont_send_to=None, send_only_to=None,\
-        **kwargs):
+    def __init__(self, verb, subscribers_of=None, dont_send_to=None, send_only_to=None,
+            emitter_class=None, spec=None, **kwargs):
         """
         Spec: http://activitystrea.ms/head/json-activity.html
 
         - subscribers_of - Thing people are subscribed to
         - dont_send_to / send_only_to - useful maybe?
-        - text - string you want to emit.
         - **kwargs - Maybe you wrote a backend that wants more stuff than the above!!
 
         CAREFUL: If you send a typo-kwarg it will just be sent to emit(), so no error will raise =(
         """
+        spec = spec or {}
+        if emitter_class:
+            emitter = emitter_class(verb=verb, **kwargs)
+            for prop in ACTSTREAM_PROPERTIES:
+                if getattr(emitter, prop, None):
+                    spec[prop] = getattr(emitter, prop)
 
         self.kwargs = kwargs
         if not subscribers_of:

@@ -1,11 +1,7 @@
 import datetime
-
 from django.db import models
-from django.conf import settings
-
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
-
 from subscription.base import get_backends
 
 
@@ -23,11 +19,6 @@ class SubscriptionManager(models.Manager):
         for backend_module in get_backends().values():
             backend_module(*args, **kwargs)
 
-    def emit_model(self, verb, instance, **kwargs):
-        spec = settings.SUBSCRIPTION_MODELSPEC_MAP[verb](verb, instance, **kwargs)
-        if not 'subscribers_of' in kwargs and not 'send_only_to' in kwargs:
-            kwargs['subscribers_of'] = instance
-        return self.emit(spec, **kwargs)
 
 class Subscription(models.Model):
     user = models.ForeignKey('auth.User')
