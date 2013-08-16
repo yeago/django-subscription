@@ -31,8 +31,12 @@ class BaseBackend(object):
         """
         spec = spec or {}
         spec['verb'] = verb
+        for prop in ACTSTREAM_PROPERTIES:
+            if kwargs.get(prop):
+                spec[prop] = kwargs[prop]
+
         if emitter_class:
-            emitter = emitter_class(kwargs)
+            emitter = emitter_class(spec)
             for prop in ACTSTREAM_PROPERTIES:
                 if getattr(emitter, prop, None):
                     spec[prop] = getattr(emitter, prop)
