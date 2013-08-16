@@ -1,5 +1,9 @@
+import time
+import datetime
+import json
 from django.core.mail import send_mail
 from django.contrib.contenttypes.models import ContentType
+from .client import get_cache_client
 
 from subscription.models import Subscription
 
@@ -44,6 +48,15 @@ class BaseBackend(object):
 
     def emit(self, user, spec, **kwargs):
         raise NotImplementedError("Override this!")
+
+
+class ActStream(BaseBackend):
+    def emit(self, user, spec, **kwargs):
+        conn = get_cache_client()
+        if not spec.get("published"):
+            spec['published'] = int(time.mktime(datetime.datetime.now().timetuple()))
+        conn.lpush("actstream::%s::undelivered" % user.pk, json.dumps(spec))
+
 
 class SimpleEmailBackend(BaseBackend):
     def emit(self, user, text, **kwargs):
