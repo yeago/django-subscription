@@ -2,6 +2,21 @@ import time
 from django.db.models import Model
 from django.contrib.contenttypes.models import ContentType
 
+def model_to_spec(obj):
+    spec = { 
+        'objectId': obj.pk,
+        'objectType': ContentType.objects.get_for_model(obj).pk,
+        'displayName': "%s" % obj,
+    }
+    try:
+        url = obj.get_absolute_url()
+        spec['url'] = url
+        spec['displayName'] = "<a href='%s'>%s</a>" % (url, obj)
+    except AttributeError:
+        pass
+    return spec
+
+
 class ModelEmitter(object):
     """
     Example emitter object which loosely converts django
@@ -13,18 +28,7 @@ class ModelEmitter(object):
 
     def _generic(self, obj):
         if isinstance(obj, Model):
-            spec = { 
-                'objectId': obj.pk,
-                'objectType': ContentType.objects.get_for_model(obj).pk,
-                'displayName': "%s" % obj,
-            }
-            try:
-                url = obj.get_absolute_url()
-                spec['url'] = url
-                spec['displayName'] = "<a href='%s'>%s</a>" % (url, obj)
-            except AttributeError:
-                pass
-            return spec
+            return model_to_spec(obj)
         return obj
 
     @property
