@@ -33,6 +33,7 @@ def render_stream(stream):
             neostream.append(json.loads(item))
     stream_redux.extend(cluster_specs(neostream))
     stream_redux.extend(legacy_stream)
+    stream_redux = sorted(stream_redux, key=lambda x: x[0], reverse=True)
     return stream_redux
 
 def get_stream(category, user_id=None, conn=None, deserialize=True, limit=None, renderer=None):
