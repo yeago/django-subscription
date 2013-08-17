@@ -69,6 +69,8 @@ class BaseBackend(object):
 
 class UserStream(BaseBackend):
     def emit(self, user, spec, **kwargs):
+        if not spec.get("target"):
+            raise Exception("Need a target for clustering to work properly")
         conn = get_cache_client()
         if not spec.get("published"):
             spec['published'] = int(time.mktime(datetime.datetime.now().timetuple()))
