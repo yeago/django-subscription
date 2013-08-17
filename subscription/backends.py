@@ -4,6 +4,7 @@ import json
 from django.core.mail import send_mail
 from django.contrib.contenttypes.models import ContentType
 from .client import get_cache_client
+from .cluster import cluster_specs
 
 from subscription.models import Subscription
 
@@ -55,6 +56,8 @@ class BaseBackend(object):
         if send_only_to:
             subscription_kwargs.update({'user__in': send_only_to})
 
+        cluster_specs([spec])  # Try it out. If shit goes wrong it wasn't meant to be.
+
         for i in Subscription.objects.filter(**subscription_kwargs):
             if i.user in (dont_send_to or []):
                 continue
@@ -69,8 +72,6 @@ class BaseBackend(object):
 
 class UserStream(BaseBackend):
     def emit(self, user, spec, **kwargs):
-        if not spec.get("target"):
-            raise Exception("Need a target for clustering to work properly")
         conn = get_cache_client()
         if not spec.get("published"):
             spec['published'] = int(time.mktime(datetime.datetime.now().timetuple()))
