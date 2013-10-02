@@ -11,8 +11,16 @@ def render_actors(actors):
     2 actors    -   SomeBody and AnotherPerson commented on X
     >2 actors   -   SomeBody, AnotherPerson and 3 others commented on X
     """
-    actors = map(dict, set(tuple(sorted(d.items())) for d in actors))
     # http://stackoverflow.com/questions/11092511/python-list-of-unique-dictionaries
+    unique_actors = map(dict, set(tuple(sorted(d.items())) for d in actors))
+    #  But we need them in the original order since its timestamped
+    unique_redux = []
+    for actor in actors:
+        for unique in unique_actors:
+            if unique == actor:
+                unique_redux.append(unique)
+                break
+    actors = unique_redux
     join_on = ", "
     if len(actors) == 2:
         join_on = " and "
@@ -23,6 +31,7 @@ def render_actors(actors):
 
 def cluster_specs(specs):
     clusters = {}
+
     for spec in specs:
         try:
             object_id = int(spec['target']['objectId'])
@@ -36,6 +45,7 @@ def cluster_specs(specs):
 
 def render_clusters(clusters):
     for cluster in clusters.values():
+        cluster = sorted(cluster, key=lambda x: x['published'], reverse=True)
         formatting = {}
         formatting['actor'] = render_actors([i['actor'] for i in cluster if i['actor'].get('displayName')])
         formatting['target'] = cluster[0]['target']['displayName']
