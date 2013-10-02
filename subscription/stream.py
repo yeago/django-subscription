@@ -32,6 +32,8 @@ def render_stream(stream, newer_than=None):
     for item in stream:
         try:
             timestamp, text = json.loads(item)
+            if newer_than and timestamp < newer_than:
+                continue
             legacy_stream.append((datetime.datetime.fromtimestamp(timestamp), text))
         except ValueError:
             neostream.append(json.loads(item))
