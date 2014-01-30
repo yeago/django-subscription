@@ -20,7 +20,7 @@ def render_actors(actors):
             if unique == actor:
                 unique_redux.append(unique)
                 break
-    actors = unique_redux
+    actors = list(set(unique_redux))
     join_on = ", "
     if len(actors) == 2:
         join_on = " and "
