@@ -75,7 +75,7 @@ class UserStream(BaseBackend):
         conn = get_cache_client()
         if not spec.get("published"):
             spec['published'] = int(time.mktime(datetime.datetime.now().timetuple()))
-        conn.lpush("actstream::%s::undelivered" % user.pk, json.dumps(spec))
+        conn.lpush("actstream::%s" % user.pk, json.dumps(spec))
 
 
 class SimpleEmailBackend(BaseBackend):

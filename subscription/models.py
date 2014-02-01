@@ -4,6 +4,24 @@ from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from subscription.base import get_backends
 
+class StreamAcknowledgeProfileMixin(object):
+    """
+    You must add this to your userprofile:
+    stream_last_acknowledged = models.DateTimeField(null=True, blank=True)
+    """
+    def get_stream_acknowledged(self):
+        """
+        Last time they checked their notifications
+
+        This assumes a datetime field on the userprofile
+        """
+        return self.stream_last_acknowledged
+
+    def stream_pending_acknowledgements(self, date):
+        if not self.stream_last_acknowledged or self.stream_last_acknowledged <= date:
+            return True
+        return False
+
 
 class SubscriptionManager(models.Manager):
     def subscribe(self,user,obj):

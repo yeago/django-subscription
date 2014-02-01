@@ -1,12 +1,21 @@
-from django.http import Http404
+import datetime
+
+from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.contenttypes.models import ContentType
 from django.utils.decorators import method_decorator
-from subscription.models import Subscription
 from django.views.generic import ListView
 from django.contrib.auth.decorators import login_required
-
 from django.contrib import messages
+
+from subscription.models import Subscription
+
+@login_required
+def actstream_ping(request): # Move unacknowledged items to acknowledged
+    profile = request.user.get_profile()
+    profile.stream_last_acknowledged = datetime.datetime.now()
+    profile.save()
+    return HttpResponse("")
 
 def subscribe(request,content_type,object_id,success_message="Subscription added"):
 	content_type = get_object_or_404(ContentType,pk=content_type)
