@@ -13,7 +13,7 @@ def get_actstream(request):
             ).stream_pending_acknowledgements(stream[0][0])
     redux = []
     for item in stream:
-        future = True
+        future = False
         if item[0] > datetime.datetime.now():
             future = True
         redux.append((item, future))
