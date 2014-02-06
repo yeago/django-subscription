@@ -1,3 +1,4 @@
+import datetime
 from .stream import user_stream
 
 def get_actstream(request):
@@ -7,9 +8,14 @@ def get_actstream(request):
     If we have 'undelivered' items, we deliver them to the unacknowledged list
     """
     stream = user_stream(request.user)
-    unacknowledged = False
     if stream:
         unacknowledged = request.user.get_profile(
             ).stream_pending_acknowledgements(stream[0][0])
-    return {'actstream': stream,
+    redux = []
+    for item in stream:
+        future = True
+        if item[0] > datetime.datetime.now():
+            future = True
+        redux.append((item, future))
+    return {'actstream': redux,
             'actstream_unacknowledged': unacknowledged}
