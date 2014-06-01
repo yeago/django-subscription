@@ -4,11 +4,11 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-subscription',
-    version="0.1",
+    version="0.2",
     author='Steve Yeago',
-    author_email='subsume@gmail.com',
+    author_email='yeago999@gmail.com',
     description='Managing subscriptions in Django',
-    url='http://github.com/subsume/django-subscription',
+    url='http://github.com/yeago/django-subscription',
     packages=find_packages(),
     include_package_data=True,
     classifiers=[
