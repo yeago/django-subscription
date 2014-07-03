@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, make_option
 
 from subscription.models import Subscription
 
@@ -28,10 +28,20 @@ def queryset_iterator(queryset, chunksize=1000):
 class Command(BaseCommand):
     args = ""
     help = "Deletes all subscriptions with None as content_object"
+    option_list = BaseCommand.option_list + (
+        make_option('--ds',
+                    action='store_true',
+                    dest='delete_stale',
+                    default=False,
+                    help='Delete stale subscriptions also'),
+    )
 
     def handle(self, *args, **options):
+        delete_stale = options.get('delete_stale')
         deleted_subscriptions_counter = 0
         total_subscriptions_counter = 0
+        stale_subscriptions_counter = 0
+        deleted_stale_counter = 0
         subscription_iterator = queryset_iterator(Subscription.objects.all())
         for subscription in subscription_iterator:
             total_subscriptions_counter += 1
@@ -40,8 +50,12 @@ class Command(BaseCommand):
                     subscription.delete()
                     deleted_subscriptions_counter += 1
             except AttributeError:
-                subscription.delete()
-                deleted_subscriptions_counter += 1
+                stale_subscriptions_counter += 1
+                if delete_stale:
+                    subscription.delete()
+                    deleted_stale_counter += 1
 
-        self.stdout.write('Total subscriptions: %s\nSuccessfully deleted subscriptions: %s\n' %
-                          (total_subscriptions_counter, deleted_subscriptions_counter))
+        self.stdout.write('Total subscriptions: %s\nSuccessfully deleted subscriptions: %s\n'
+                          'Stale subscriptions: %s\nSuccessfully deleted stale subscriptions: %s\n' %
+                          (total_subscriptions_counter, deleted_subscriptions_counter,
+                           stale_subscriptions_counter, deleted_stale_counter))
