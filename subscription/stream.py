@@ -3,9 +3,9 @@ import json
 from .client import get_cache_client
 from .cluster import cluster_specs
 
-def clear_stream(user, conn=None):
+def clear_stream(user, conn=None, key='actstream::%s'):
     conn = conn or get_cache_client()
-    conn.delete("actstream::%s" % (user.pk))
+    conn.delete(key % (user.pk))
 
 
 def render_stream(stream, newer_than=None, self=None):
@@ -39,7 +39,7 @@ def render_stream(stream, newer_than=None, self=None):
     stream_redux = sorted(stream_redux, key=lambda x: x[0], reverse=True)
     return stream_redux
 
-def get_stream(user_id, conn=None, limit=None, renderer=None, newer_than=None):
+def get_stream(user_id, conn=None, limit=None, renderer=None, newer_than=None, key='actstream::%s'):
     """
     * limit - The redis limit to apply to the list (maybe you only want the last 20)
     * newer_than - Epoch of the earliest messages you want.
@@ -47,7 +47,7 @@ def get_stream(user_id, conn=None, limit=None, renderer=None, newer_than=None):
     limit = limit or -1
     conn = conn or get_cache_client()
     user_id = user_id or '*'
-    redis_list = conn.lrange("actstream::%s" % (user_id), 0, limit)
+    redis_list = conn.lrange(key % (user_id), 0, limit)
     if renderer:
         return renderer(redis_list, newer_than=newer_than, self=user_id)
     return redis_list
