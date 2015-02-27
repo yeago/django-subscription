@@ -1,6 +1,7 @@
 import time
 from django.db.models import Model
 from django.contrib.contenttypes.models import ContentType
+from django.utils.html import strip_tags
 
 def model_to_spec(obj):
     spec = { 
@@ -11,7 +12,7 @@ def model_to_spec(obj):
     try:
         url = obj.get_absolute_url()
         spec['url'] = url
-        spec['displayName'] = "<a href='%s'>%s</a>" % (url, obj)
+        spec['displayName'] = "<a href='%s'>%s</a>" % (url, strip_tags('%s' % obj))
     except AttributeError:
         pass
     return spec
