@@ -12,7 +12,7 @@ def model_to_spec(obj):
     try:
         url = obj.get_absolute_url()
         spec['url'] = url
-        spec['displayName'] = u"<a href='%s'>%s</a>" % (url, strip_tags('%s' % obj))
+        spec['displayName'] = u"<a href='%s'>%s</a>" % (url, strip_tags(u'%s' % obj))
     except AttributeError:
         pass
     return spec
