@@ -48,8 +48,16 @@ def cluster_specs(specs):
 def render_clusters(specs):
     for cluster, items in specs.items():
         items = sorted(items, key=lambda x: x['published'], reverse=True)
-        formatting = {}
-        formatting['actor'] = render_actors([i['actor'] for i in items if i['actor'].get('displayName')])
-        formatting['target'] = items[0]['target']['displayName']
-        verbage = settings.SUBSCRIPTION_VERB_RENDER_MAP[items[0]['verb']] % formatting
-        yield datetime.datetime.fromtimestamp(max(i["published"] for i in items)), verbage
+        if cluster[2] in settings.NON_CLUSTER_SUBSCRIPTION_VERBS:
+            for item in items:
+                formatting = {'actor': item['actor']['displayName'] if item['actor'].get('displayName') else '',
+                              'target': item['target']['displayName']}
+                verbage = settings.SUBSCRIPTION_VERB_RENDER_MAP[item['verb']] % formatting
+                yield datetime.datetime.fromtimestamp(item["published"]), verbage
+        else:
+            formatting = {}
+            formatting['actor'] = render_actors([i['actor'] for i in items if i['actor'].get('displayName')])
+            formatting['target'] = items[0]['target']['displayName']
+            verbage = settings.SUBSCRIPTION_VERB_RENDER_MAP[items[0]['verb']] % formatting
+            yield datetime.datetime.fromtimestamp(max(i["published"] for i in items)), verbage
+
