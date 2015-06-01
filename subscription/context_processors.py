@@ -11,7 +11,6 @@ def get_actstream(request):
     stream = user_stream(request.user)
 
     last_ack = request.user.get_profile().get_stream_acknowledged()
-    last_ack = int(time.mktime(last_ack.timetuple()))
     unacknowledged = user_stream(request.user, newer_than=last_ack)
 
     return {'actstream': stream,
