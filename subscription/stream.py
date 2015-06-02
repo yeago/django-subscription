@@ -25,7 +25,10 @@ def render_stream(stream, newer_than=None, self=None):
     for item in stream:
         try:
             timestamp, text = json.loads(item)
-            if newer_than and timestamp < newer_than:
+            try:
+                if newer_than and timestamp < newer_than:
+                    continue
+            except TypeError:
                 continue
             legacy_stream.append((datetime.datetime.fromtimestamp(timestamp), text))
         except ValueError:
