@@ -48,6 +48,7 @@ def cluster_specs(specs):
 def render_clusters(specs):
     for cluster, items in specs.items():
         items = sorted(items, key=lambda x: x['published'], reverse=True)
+        items = [i for i in items if i.get('actor')]
         if cluster[2] in settings.NON_CLUSTER_SUBSCRIPTION_VERBS:
             for item in items:
                 formatting = {'actor': item['actor']['displayName'] if item['actor'].get('displayName') else '',
