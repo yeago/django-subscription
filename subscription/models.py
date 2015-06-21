@@ -3,6 +3,9 @@ from django.db import models
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from subscription.base import get_backends
+from django.db.models.query import QuerySet
+
+from model_utils.managers import PassThroughManager
 
 class StreamAcknowledgeProfileMixin(object):
     """
@@ -23,19 +26,53 @@ class StreamAcknowledgeProfileMixin(object):
         return False
 
 
-class SubscriptionManager(models.Manager):
-    def subscribe(self,user,obj):
+class SubscriptionQuerySet(QuerySet):
+    _subscription_to = []
+    _subscription_exclude = []
+    def of(self, instance):
+        if hasattr(self, '_subscription_of'):
+            raise Exception("meh, don't chain these")
+
+        ct = ContentType.objects.get_for_model(instance)
+        self._subscription_of = Subscription.objects.filter(content_type=ct.pk, object_id=instance.pk)
+        return self
+
+    def to(self, user):
+        try:
+            iter(user)
+            self._subscription_to.extend(user)
+        except TypeError:
+            self._subscription_to.append(user)
+        return self
+
+    def not_to(self, user):
+        try:
+            iter(user)
+            self._subscription_exclude.extend(user)
+        except TypeError:
+            self._subscription_exclude.append(user)
+        return self
+
+    def subscribe(self, user, obj):
         ct = ContentType.objects.get_for_model(obj)
         Subscription.objects.get_or_create(content_type=ct,object_id=obj.pk,user=user)
 
     def emit(self, *args, **kwargs):
+        if not hasattr(self, '_subscription_of'):
+            self._subscription_of = []
+
         backend = kwargs.pop('backend',None) or None
-
-        if backend:
-            return get_backends()[backend]
-
         for backend_module in get_backends().values():
-            backend_module(*args, **kwargs)
+            if backend and not backend_module == backend:
+                continue
+            for item in self._subscription_to:
+                if item in self._subscription_exclude:
+                    continue
+                backend_module(item, *args, **kwargs)
+            for item in self._subscription_of:
+                if item.user in self._subscription_to or item.user in self._subscription_exclude:
+                    continue
+                backend_module(item.user, *args, **kwargs)
 
 
 class Subscription(models.Model):
@@ -44,7 +81,7 @@ class Subscription(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey()
     timestamp = models.DateTimeField(editable=False,default=datetime.datetime.now)
-    objects = SubscriptionManager()
+    objects = PassThroughManager.for_queryset_class(SubscriptionQuerySet)()
     class Meta:
         db_table ="subscription"
 

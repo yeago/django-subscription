@@ -19,8 +19,7 @@ class BaseBackend(object):
     def __call__(obj, *args, **kwargs):
         return obj(*args, **kwargs)
 
-    def __init__(self, verb, subscribers_of=None, dont_send_to=None, send_only_to=None,
-            emitter_class=None, spec=None, **kwargs):
+    def __init__(self, user, verb, emitter_class=None, spec=None, **kwargs):
         """
         Spec: http://activitystrea.ms/head/json-activity.html
 
@@ -43,28 +42,8 @@ class BaseBackend(object):
                     spec[prop] = getattr(emitter, prop)
 
         self.kwargs = kwargs
-        if not subscribers_of:
-            for recipient in send_only_to:
-                self.emit(recipient, spec, **kwargs)
-            return
-
-        self.content_type = ContentType.objects.get_for_model(subscribers_of)
-        subscription_kwargs = {
-            'content_type': self.content_type.pk,
-            'object_id': subscribers_of.pk
-        }
-        if send_only_to:
-            subscription_kwargs.update({'user__in': send_only_to})
-
         cluster_specs([spec])  # Try it out. If shit goes wrong it wasn't meant to be.
-
-        for i in Subscription.objects.filter(**subscription_kwargs):
-            if i.user in (dont_send_to or []):
-                continue
-
-            if send_only_to and i.user not in send_only_to:
-                continue
-            self.emit(i.user, spec, **kwargs)
+        self.emit(user, spec, **kwargs)
 
     def emit(self, user, spec, **kwargs):
         raise NotImplementedError("Override this!")
