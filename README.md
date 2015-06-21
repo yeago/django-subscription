@@ -18,6 +18,8 @@ http://activitystrea.ms/head/json-activity.html
         "comment.create", comment_obj,
         emitter_class=ModelEmitter)
 
+# Settings
+
 The args/kwargs to emit() are more or less shuttled straight to the SUBSCRIPTION_BACKEND(s),
 which is a dict in your settings.py like:
 
@@ -25,6 +27,12 @@ which is a dict in your settings.py like:
       'email': 'myproject.subscription_backends.Email',
       'redis': 'myproject.subscription_backends.Redis',
     }
+
+    SUBSCRIPTION_ACTSTREAM_PROPERTIES = [
+       'contentOwner'
+    ]
+    # Use this if you wanna say fuckit to the 'official' activitystream properties
+
 
 # Writing a backend
 
