@@ -7,8 +7,9 @@ from .client import get_cache_client
 from .cluster import cluster_specs
 
 from subscription.models import Subscription
+from django.conf import settings
 
-ACTSTREAM_PROPERTIES = [
+DEFAULT_ACTSTREAM_PROPERTIES = [
     'published',
     'actor',
     'target',
@@ -21,23 +22,27 @@ class BaseBackend(object):
 
     def __init__(self, user, verb, emitter_class=None, spec=None, **kwargs):
         """
-        Spec: http://activitystrea.ms/head/json-activity.html
-
-        - subscribers_of - Thing people are subscribed to
-        - dont_send_to / send_only_to - useful maybe?
+        Verb, Spec: http://activitystrea.ms/head/json-activity.html
         - **kwargs - Maybe you wrote a backend that wants more stuff than the above!!
 
         CAREFUL: If you send a typo-kwarg it will just be sent to emit(), so no error will raise =(
         """
         spec = spec or {}
         spec['verb'] = verb
-        for prop in ACTSTREAM_PROPERTIES:
+        for prop in DEFAULT_ACTSTREAM_PROPERTIES:
             if kwargs.get(prop):
                 spec[prop] = kwargs[prop]
 
+        if hasattr(settings, 'SUBSCRIPTION_ACTSTREAM_PROPERTIES'):
+            ## The user wanted to add more things to the spec
+            for prop in settings.SUBSCRIPTION_ACTSTREAM_PROPERTIES:
+                if kwargs.get(prop):
+                    spec[prop] = kwargs[prop]
+
+
         if emitter_class:
             emitter = emitter_class(spec)
-            for prop in ACTSTREAM_PROPERTIES:
+            for prop in DEFAULT_ACTSTREAM_PROPERTIES:
                 if getattr(emitter, prop, None):
                     spec[prop] = getattr(emitter, prop)
 
