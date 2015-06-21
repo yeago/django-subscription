@@ -4,16 +4,19 @@ http://activitystrea.ms/head/json-activity.html
 
 # Subscribing
 
-    Subscription.objects.subscribe(user,content_object) # Subscribes a user
+    Subscription.objects.subscribe(user, content_object) # Subscribes a user
 
 # Emitting
 
-    Subscription.objects.emit("comment.create", comment_spec,
-                             subscribers_of=comment_obj.content_object)
+## Just one person, but not if its the author of the comment
 
-    
-    Subscription.objects.emit("comment.create", comment_obj,
-        subscribers_of=comment_obj.content_object, emitter_class=ModelEmitter)
+    Subscription.objects.to(comment_obj.content_object.user).not_to(comment_obj.user).emit("comment.create", comment_spec)
+   
+## All subscribers of the content objects except the author of the comment
+ 
+    Subscription.objects.of(comment_obj).not_to(comment_obj.user).emit(
+        "comment.create", comment_obj,
+        emitter_class=ModelEmitter)
 
 The args/kwargs to emit() are more or less shuttled straight to the SUBSCRIPTION_BACKEND(s),
 which is a dict in your settings.py like:
@@ -26,11 +29,10 @@ which is a dict in your settings.py like:
 # Writing a backend
 
 You can subclass subscription.backends.BaseBackend. Right now the options are:
- 
-* instance
+
+SomeBackend.emit(recipient, 'some.verb', **activity_stream_spec_plus_whatever)
+
+* recipient (auth.User) 
 * verb
 * activity stream spec attrs (published, target, object, actor)
-* subscribers_of - Gets the recipients from the Subscription model
-* dont_send_to - Useful for supressing comment messages to their own author, for example
-* send_only_to - Useful for other things I guess
 * **kwargs - Passed onto your backend subclass in case you need more info
