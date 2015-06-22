@@ -27,9 +27,12 @@ class StreamAcknowledgeProfileMixin(object):
 
 
 class SubscriptionQuerySet(QuerySet):
-    _subscription_exclude = []
-    _subscription_to = []
-    _subscription_of = None
+    def __init__(self, *args, **kwargs):
+        super(SubscriptionQuerySet, self).__init__(*args, **kwargs)
+        self._subscription_exclude = []
+        self._subscription_to = []
+        self._subscription_of = None
+
 
     def _clone(self, **kwargs):
         clone = super(SubscriptionQuerySet, self)._clone(**kwargs)
