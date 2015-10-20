@@ -105,7 +105,7 @@ Just send this with the comment_was_posted signal
 def auto_subscribe(**kwargs):
     comment = kwargs.pop('comment')
     auto_subscribe_field = getattr(settings,'SUBSCRIPTION_AUTOSUBSCRIBE_PROFILE_FIELD','auto_subscribe')
-    if getattr(comment.user.get_profile(),auto_subscribe_field,True):
+    if getattr(get_profile(comment.user),auto_subscribe_field,True):
         Subscription.objects.subscribe(user,comment.content_object)
 
 comment_was_posted.connect(auto_subscribe, sender=CommentModel)
@@ -128,7 +128,7 @@ def email_comment(**kwargs):
             object_id=comment.object_pk).exclude(user=comment.user)
 
     for i in subscriptions:
-        if getattr(i.user.get_profile(),supress_email_field,False):
+        if getattr(get_profile(i.user),supress_email_field,False):
             continue
 
         c = {
