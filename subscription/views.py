@@ -9,10 +9,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from subscription.models import Subscription
+from subscription.base import get_profile
 
 @login_required
 def actstream_ping(request): # Move unacknowledged items to acknowledged
-    profile = request.user.get_profile()
+    profile = get_profile(request.user)
     profile.stream_last_acknowledged = datetime.datetime.now()
     profile.save()
     return HttpResponse("")

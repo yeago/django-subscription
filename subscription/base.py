@@ -26,3 +26,10 @@ def get_backends():
     if not backends:
         raise ImproperlyConfigured('No subscription backends have been defined. Does SUBSCRIPTION_BACKENDS contain anything?')
     return backends
+
+
+def get_profile(user):
+    try:
+        return getattr(user, settings.SUBSCRIPTION_USERPROFILE)
+    except AttributeError:
+        raise ImproperlyConfigured('Please set the SUBSCRIPTION_USERPROFILE setting with the name of your userprofile')
