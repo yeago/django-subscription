@@ -14,6 +14,8 @@ class Redis(RedisBase):
             kwargs['host'] = settings.REDIS_HOST
         if not 'db' in kwargs:
             kwargs['db'] = settings.REDIS_DB
+        if getattr(settings, 'REDIS_PASSWORD' None):
+            kwargs['password'] = settings.REDIS_PASSWORD
         super(Redis,self).__init__(**kwargs)
 
 def get_cache_client(**kwargs):
