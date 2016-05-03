@@ -4,7 +4,7 @@ from django.conf import settings
 try:
     from django.utils.module_loading import import_by_path
 except ImportError:
-    from django.utils.importlib import import_module
+    from importlib import import_module
     def import_by_path(path):
         i = path.rfind('.')
         module, attr = path[:i], path[i+1:]
