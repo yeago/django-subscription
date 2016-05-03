@@ -1,6 +1,6 @@
 import datetime
 from django.db import models
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from subscription.base import get_backends
 from django.db.models.query import QuerySet
@@ -91,7 +91,7 @@ class Subscription(models.Model):
     user = models.ForeignKey('auth.User')
     content_type = models.ForeignKey('contenttypes.ContentType')
     object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey()
+    content_object = GenericForeignKey()
     timestamp = models.DateTimeField(editable=False,default=datetime.datetime.now)
     objects = PassThroughManager.for_queryset_class(SubscriptionQuerySet)()
     class Meta:
