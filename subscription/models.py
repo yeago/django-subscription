@@ -5,8 +5,6 @@ from django.contrib.contenttypes.models import ContentType
 from subscription.base import get_backends
 from django.db.models.query import QuerySet
 
-from model_utils.managers import PassThroughManager
-
 class StreamAcknowledgeProfileMixin(object):
     """
     You must add this to your userprofile:
@@ -92,10 +90,11 @@ class Subscription(models.Model):
     content_type = models.ForeignKey('contenttypes.ContentType')
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey()
-    timestamp = models.DateTimeField(editable=False,default=datetime.datetime.now)
-    objects = PassThroughManager.for_queryset_class(SubscriptionQuerySet)()
+    timestamp = models.DateTimeField(editable=False, default=datetime.datetime.now)
+    objects = SubscriptionQuerySet.as_manager()
+
     class Meta:
-        db_table ="subscription"
+        db_table = "subscription"
 
 """
 Seems sensible to auto-subscribe people to objects they comment on.
