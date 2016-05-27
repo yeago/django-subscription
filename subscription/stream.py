@@ -1,14 +1,15 @@
 import datetime
 import json
 from .client import get_cache_client
-from .cluster import cluster_specs
+from .cluster import cluster_specs, render_clusters
+
 
 def clear_stream(user, conn=None, key='actstream::%s'):
     conn = conn or get_cache_client()
     conn.delete(key % (user.pk))
 
 
-def render_stream(stream, newer_than=None, self=None):
+def compile_stream(stream, newer_than=None, self=None, render=True):
     stream_redux = []
     if not stream:
         return stream_redux
@@ -35,12 +36,17 @@ def render_stream(stream, newer_than=None, self=None):
             item = json.loads(item)
             neostream.append(item)
     if newer_than:
-        neostream = [i for i in neostream if not i.get('published') or \
+        neostream = [
+            i for i in neostream if not i.get('published') or
             datetime.datetime.fromtimestamp(i['published']) > newer_than]
-    stream_redux.extend(cluster_specs(neostream))
+    specs = cluster_specs(neostream)
+    if render:
+        specs = render_clusters(specs)
+    stream_redux.extend(specs)
     stream_redux.extend(legacy_stream)
     stream_redux = sorted(stream_redux, key=lambda x: x[0], reverse=True)
     return stream_redux
+
 
 def get_stream(user_id, conn=None, limit=None, renderer=None, newer_than=None, key='actstream::%s'):
     """
@@ -55,6 +61,7 @@ def get_stream(user_id, conn=None, limit=None, renderer=None, newer_than=None, k
         return renderer(redis_list, newer_than=newer_than, self=user_id)
     return redis_list
 
+
 def user_stream(user, limit=None, newer_than=None):
     """
     * limit_labmda - Cheesy as fuck hook to pass limit to a list
@@ -65,5 +72,6 @@ def user_stream(user, limit=None, newer_than=None):
     the entire history of everything they've already seen.
     """
     conn = get_cache_client()
-    return get_stream(user.pk, conn,
-        limit=limit, newer_than=newer_than, renderer=render_stream)
+    return get_stream(
+        user.pk, conn,
+        limit=limit, newer_than=newer_than, renderer=compile_stream)

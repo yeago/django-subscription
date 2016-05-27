@@ -39,10 +39,10 @@ def cluster_specs(specs):
         except ValueError:
             object_id = spec['target']['objectId']
         key = (spec['target']['objectType'], object_id, spec['verb'])
-        if not key in clusters:
+        if key not in clusters:
             clusters[key] = []
         clusters[key].append(spec)
-    return render_clusters(clusters)
+    return clusters
 
 
 def render_clusters(specs):
@@ -63,4 +63,3 @@ def render_clusters(specs):
             formatting['target'] = items[0]['target']['displayName']
             verbage = settings.SUBSCRIPTION_VERB_RENDER_MAP[items[0]['verb']] % formatting
             yield datetime.datetime.fromtimestamp(max(i["published"] for i in items)), verbage
-
