@@ -31,7 +31,7 @@ def compile_stream(stream, newer_than=None, self=None, render=True):
                     continue
             except TypeError:
                 continue
-            legacy_stream.append((datetime.datetime.fromtimestamp(timestamp), text))
+            legacy_stream.append((timestamp, text))
         except ValueError:
             item = json.loads(item)
             neostream.append(item)

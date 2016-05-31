@@ -1,4 +1,3 @@
-import datetime
 from django.template.defaultfilters import pluralize
 from django.conf import settings
 
@@ -56,10 +55,10 @@ def render_clusters(specs):
                 formatting = {'actor': item['actor']['displayName'] if item['actor'].get('displayName') else '',
                               'target': item['target']['displayName']}
                 verbage = settings.SUBSCRIPTION_VERB_RENDER_MAP[item['verb']] % formatting
-                yield datetime.datetime.fromtimestamp(item["published"]), verbage
+                yield item["published"], verbage
         else:
             formatting = {}
             formatting['actor'] = render_actors([i['actor'] for i in items if i['actor'].get('displayName')])
             formatting['target'] = items[0]['target']['displayName']
             verbage = settings.SUBSCRIPTION_VERB_RENDER_MAP[items[0]['verb']] % formatting
-            yield datetime.datetime.fromtimestamp(max(i["published"] for i in items)), verbage
+            yield max(i["published"] for i in items), verbage
