@@ -25,7 +25,7 @@ def render_actors(actors):
         join_on = " and "
     string = join_on.join(i['displayName'] for i in actors[:2])
     if len(actors) > 2:
-        string = "%s and %s other%s" % (string, len(actors) - 2, pluralize(len(actors) -2))
+        string = "%s and %s other%s" % (string, len(actors) - 2, pluralize(len(actors) - 2))
     return string
 
 
@@ -47,18 +47,22 @@ def cluster_specs(specs):
 def render_clusters(specs):
     for cluster, items in specs.items():
         items = sorted(items, key=lambda x: x['published'], reverse=True)
-        items = [i for i in items if i.get('actor')]
-        if not items:
-            continue
-        if cluster[2] in settings.NON_CLUSTER_SUBSCRIPTION_VERBS:
-            for item in items:
-                formatting = {'actor': item['actor']['displayName'] if item['actor'].get('displayName') else '',
-                              'target': item['target']['displayName']}
-                verbage = settings.SUBSCRIPTION_VERB_RENDER_MAP[item['verb']] % formatting
-                yield item["published"], verbage
-        else:
+        for item in items:
             formatting = {}
-            formatting['actor'] = render_actors([i['actor'] for i in items if i['actor'].get('displayName')])
-            formatting['target'] = items[0]['target']['displayName']
-            verbage = settings.SUBSCRIPTION_VERB_RENDER_MAP[items[0]['verb']] % formatting
-            yield max(i["published"] for i in items), verbage
+            if cluster[2] in settings.NON_CLUSTER_SUBSCRIPTION_VERBS:
+                if item.get('actor'):
+                    formatting['actor'] = item['actor'].get('displayName') or ''
+                if item.get('target'):
+                    formatting['target'] = item['target'].get('displayName') or ''
+                try:
+                    yield item['published'], settings.SUBSCRIPTION_VERB_RENDER_MAP[item['verb']] % formatting
+                except KeyError:
+                    continue
+            else:
+                try:
+                    formatting['actor'] = render_actors([i['actor'] for i in items if i['actor'].get('displayName')])
+                except KeyError:
+                    continue
+                formatting['target'] = items[0]['target']['displayName']
+                verbage = settings.SUBSCRIPTION_VERB_RENDER_MAP[items[0]['verb']] % formatting
+                yield max(i["published"] for i in items), verbage
