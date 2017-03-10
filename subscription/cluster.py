@@ -47,9 +47,9 @@ def cluster_specs(specs):
 def render_clusters(specs):
     for cluster, items in specs.items():
         items = sorted(items, key=lambda x: x['published'], reverse=True)
-        for item in items:
-            formatting = {}
-            if cluster[2] in settings.NON_CLUSTER_SUBSCRIPTION_VERBS:
+        formatting = {}
+        if cluster[2] in settings.NON_CLUSTER_SUBSCRIPTION_VERBS:
+            for item in items:
                 if item.get('actor'):
                     formatting['actor'] = item['actor'].get('displayName') or ''
                 if item.get('target'):
@@ -58,11 +58,11 @@ def render_clusters(specs):
                     yield item['published'], settings.SUBSCRIPTION_VERB_RENDER_MAP[item['verb']] % formatting
                 except KeyError:
                     continue
-            else:
-                try:
-                    formatting['actor'] = render_actors([i['actor'] for i in items if i['actor'].get('displayName')])
-                except KeyError:
-                    continue
-                formatting['target'] = items[0]['target']['displayName']
-                verbage = settings.SUBSCRIPTION_VERB_RENDER_MAP[items[0]['verb']] % formatting
-                yield max(i["published"] for i in items), verbage
+        else:
+            try:
+                formatting['actor'] = render_actors([i['actor'] for i in items if i['actor'].get('displayName')])
+            except KeyError:
+                continue
+            formatting['target'] = items[0]['target']['displayName']
+            verbage = settings.SUBSCRIPTION_VERB_RENDER_MAP[items[0]['verb']] % formatting
+            yield max(i["published"] for i in items), verbage
