@@ -48,13 +48,12 @@ class SubscriptionQuerySet(QuerySet):
 
     def to(self, user):
         clone = self._clone()
-        if not user.is_active:
-            return clone
         try:
             iter(user)
-            clone._subscription_to.extend(user)
+            clone._subscription_to.extend([i for i in user if i.is_active])
         except TypeError:
-            clone._subscription_to.append(user)
+            if user.is_active:
+                clone._subscription_to.append(user)
         return clone
 
     def not_to(self, user):
