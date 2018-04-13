@@ -81,7 +81,7 @@ class SubscriptionQuerySet(QuerySet):
                     continue
                 backend_module(item, *args, **kwargs)
             for item in clone._subscription_of or []:
-                if not item.user.is_activge or item.user in clone._subscription_to or item.user in clone._subscription_exclude:
+                if not item.user.is_active or item.user in clone._subscription_to or item.user in clone._subscription_exclude:
                     continue
                 backend_module(item.user, *args, **kwargs)
 
