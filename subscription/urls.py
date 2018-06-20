@@ -1,4 +1,4 @@
-from django.conf.urls import url  # Django >= 1.6
+from django.conf.urls import url
 from subscription import views
 
 urlpatterns = [
