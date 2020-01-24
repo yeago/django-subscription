@@ -5,19 +5,21 @@ try:
     from django.utils.module_loading import import_by_path
 except ImportError:
     from importlib import import_module
+
     def import_by_path(path):
         i = path.rfind('.')
-        module, attr = path[:i], path[i+1:]
+        module, attr = path[:i], path[i + 1:]
         try:
             mod = import_module(module)
-        except ImportError, e:
+        except ImportError as e:
             raise ImproperlyConfigured('Error importing subscription backend %s: "%s"' % (path, e))
-        except ValueError, e:
+        except ValueError as e:
             raise ImproperlyConfigured('Error importing subscription backends. Is SUBSCRIPTION_BACKENDS a correctly defined dictionary?')
         try:
             return getattr(mod, attr)
         except AttributeError:
             raise ImproperlyConfigured('Module "%s" does not define a "%s" subscription backend' % (module, attr))
+
 
 def get_backends():
     backends = {}
