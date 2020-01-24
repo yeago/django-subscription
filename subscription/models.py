@@ -87,8 +87,8 @@ class SubscriptionQuerySet(QuerySet):
 
 
 class Subscription(models.Model):
-    user = models.ForeignKey('auth.User')
-    content_type = models.ForeignKey('contenttypes.ContentType')
+    user = models.ForeignKey('auth.User', on_delete=models.PROTECT)
+    content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.PROTECT)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey()
     timestamp = models.DateTimeField(editable=False, default=datetime.datetime.now)
