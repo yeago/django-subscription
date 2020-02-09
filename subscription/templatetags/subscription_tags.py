@@ -22,7 +22,7 @@ def subscribe_url(instance):
 
 @register.simple_tag
 def subscription_toggle_link(object, user, return_url=None):
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         return ''
 
     ct = ContentType.objects.get_for_model(object.__class__)
