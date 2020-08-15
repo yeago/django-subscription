@@ -87,7 +87,7 @@ class SubscriptionQuerySet(QuerySet):
 
 
 class Subscription(models.Model):
-    user = models.ForeignKey('auth.User', on_delete=models.PROTECT)
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.PROTECT)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey()
