@@ -24,6 +24,9 @@ def compile_stream(stream, newer_than=None, self=None, render=True):
     """
     neostream, legacy_stream = [], []
     for item in stream:
+        if isinstance(item, dict):
+            neostream.append(item)
+            continue
         try:
             timestamp, text = json.loads(item)
             try:
@@ -32,7 +35,7 @@ def compile_stream(stream, newer_than=None, self=None, render=True):
             except TypeError:
                 continue
             legacy_stream.append((timestamp, text))
-        except (TypeError, ValueError):
+        except ValueError:
             item = json.loads(item)
             neostream.append(item)
     if newer_than:
