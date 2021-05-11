@@ -44,7 +44,8 @@ def compile_stream(stream, newer_than=None, self=None, render=True):
         specs = render_clusters(specs)
     stream_redux.extend(specs)
     stream_redux.extend(legacy_stream)
-    stream_redux = sorted(stream_redux, key=lambda x: x[0], reverse=True)
+    if render:
+        stream_redux = sorted(stream_redux, key=lambda x: int(x[0]), reverse=True)
     return stream_redux
 
 
